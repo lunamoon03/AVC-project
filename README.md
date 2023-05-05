@@ -1,6 +1,4 @@
 # AVC
-test test test
-
 
 ## Getting started
 
