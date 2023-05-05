@@ -1,5 +1,5 @@
 # AVC
-test test test
+TEST - this was edited on personal computer. trying to move it from here to rpi
 
 
 ## Getting started
