@@ -1,7 +1,3 @@
-# AVC
-TEST - this was edited on personal computer. trying to move it from here to rpi
-
-
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
