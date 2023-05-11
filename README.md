@@ -1,88 +1,111 @@
-## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Software Plan
+Useful functions
+•	Turn function
+•	Straight movement function
+•	Centring function
+•	Black pixel detection
+•	Quadrant 3 detector
+•	Makefile
+Quadrant 1
+•	Gate opener
+Quadrant 2
+•	Quadrant 2 navigator
+Quadrant 3
+•	Branching path detection
+•	Branching path navigator
+•	Branching path solving
+•	Quadrant 4 detector
+Quadrant 4
+•	Cylinder distance estimator
+•	“Ball” pusher
+•	Cylinder approacher
+•	Find next cylinder
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+More detail on each function after the road map.
 
-## Add your files
+Road Map    
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
 
-```
-cd existing_repo
-git remote add origin https://gitlab.ecs.vuw.ac.nz/course-work/engr101/2023/project3/t37/avc.git
-git branch -M main
-git push -uf origin main
-```
+Function details
+Turn function.
+From useful functions
+This function should take in an angle to turn to and turn to it while the robot does not move forward. The direction the robot should turn should be an angle in degrees (Or radians if we want that). This can be achieved by having one wheel turn forward while the other turns backwards which should make the robot turn on the spot. Note that this function can be made before the robot is physically complete and simply calibrated once it’s made.
 
-## Integrate with your tools
+Straight movement function
+From useful functions
+This function should make the robot go forwards by a specified amount (shocking I know).
+This can be achieved by making the wheels spin in the same direction. Once again, this function can be fully calibrated once the robot is made.
 
-- [ ] [Set up project integrations](https://gitlab.ecs.vuw.ac.nz/course-work/engr101/2023/project3/t37/avc/-/settings/integrations)
+Centring function
+From useful functions
+This function should take a row and a colour as a parameter. This function should then centre the robot on the line based on where the line is on the row specified. It might be a good idea to break this function up into one which detects the line and one that centres the robot on it as that might be more useful for Quadrant 2.  Take the inner product and then use the turn function based on how much it needs to turn.
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Black pixel detection
+From useful functions
+Implemented by Jacob on 10/05/2023.
+Should take the x and the y of the pixel to check if its black and then return a bool.
+Should check if its black by checking if RGB are below a certain thresh hold and are relatively equal.
 
-## Test and Deploy
+Quadrant 3 detector
+From useful functions
+This function should check if the program has reached the start of quadrant 3.
+It should return a bool. It seems currently there is a red hexagon which denotes the transition from quadrant 2 to 3. I do not have confirmation that this will stay so if it is removed a different method might be required. But for now it can just keep the camera in place and check if there are a certain number of red pixels. Is there is it should return true.
 
-Use the built-in continuous integration in GitLab.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
 
-***
+Gate opener
+From Quadrant 1
+This function was completed by Luna on 10/05/2023.
+This function should open the gate when called. First it connects to the server using the address and pot number. Then it gets the password from the server and sends it back to open the gate.
 
-# Editing this README
+Quadrant 2 solver
+From Quadrant 2
+This function should Using the move forward function and the centering function to navigate through quadrant 1 and quadrant 2. It should also frequently call Quadrant 3 detector to determine if it has change quadrants.
+Branching path detection
+From QUADRANT 3
+Potential method for it:
+Bounding box. Measure each of the extremes of where black pixels are found (Highest, lowest, leftmost, rightmost.) This allows us to create a bounding box. WE can then use this box to determine which paths are available. This should be relatively simple to code and fast to run. However, it will require another function which will actually execute on the chosen path and follow it. Note this function should not determine which path to take but instead return the available paths.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Branching path navigator
+From Quadrant 3
+This function should take in a direction and move down it in the branching path. For making a turn. Go forwards while repeating the branching path detection function. When the chosen path is no longer detection turn in that direction and then go forward. The centring function should move the robot back on the line afterwards. For going forwards, Keep going forwards until the branching path detection no longer detects a branching path. 
 
-## Name
-AVC Project 
+Branching path solver
+From Quadrant 3
+This function should navigate through quadrant 3 when called. It should call branching path detector and navigator in order to determine when it has reached a branching path and move through it. This function should determine which path branching path navigator should take.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Methods: Hard code the route. This method should be simple to implement but, is vulnerable to getting lost while navigating. If this occurs the robot won’t be able to pass quadrant 3
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Maze navigator. This method would likely be always choosing the leftmost route. This means it could still solve the maze even if the robot somehow got lost. The issue with this method is that it would require a special function to detect when the robot reaches the correct end otherwise the robot will simply ignore the end of the quadrant. The robot will also require a method for navigating dead ends in the maze which the previous wouldn’t. We could solve the end detection issue by raising the camera and looking for the green cylinder which should be directly visible from the correct end of the path.
+Quadrant 4 detector
+From quadrant 3
+This function should raise the camera (Increase the pitch). Until it is perpendicular to the ground. This function should return a Boolean. It should look count the number of green pixels (The green cylinder is directly visible from the end of Q3) and it they are above a certain threshold return true.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Cylinder distance estimator
+From quadrant 4
+This function should estimate the distance from the cylinder based on the number of orange, green, or blue pixels. This function should take the type of cylinder it is looking for as an input and return the number of pixels of that type as an output. \
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Ball pusher
+From quadrant 4
+This function should make the robot keep approaching the ball when called until it pushes it off the edge of the course.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Cylinder approacher
+From quadrant 4
+This function should be given a colour as an input and approach the cylinder matching it but not touch it. It should use the distance estimator to estimate the distance then move towards it and keep doing that until it reaches the required range.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Find next cylinder
+From quadrant 4
+This function should take a colour of the expected cylinder and turn the robot around until it has a certain number of pixel of that type on camera. Function should normally have cylinder approacher called after it to center the robot on the cylinder.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
 
-## License
-For open source projects, say how it is licensed.
+Quadrant 4 solver
+From quadrant 4
+This function should navigate the robot through quadrant 4. It should make the robot move near each cylinder in order using cylinder approacher and find next cylinder to navigate near them. Then it should identify the “ball” using find next cylinder then use the ball pusher function to push it off the edge. 
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
