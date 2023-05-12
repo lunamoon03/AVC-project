@@ -1,9 +1,13 @@
 #include <iostream>
 #include "E101.h"
 #include "isColour.h"
+#include "blackLine.h"
 #include <unistd.h>
+#include <vector>
+#include <iterator>
+#include <algorithm>
 
-void openGate() {
+void open_gate() {
     char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
     int server_port = 1024;
     char message [24] = {'P', 'l', 'e', 'a', 's', 'e', '\0'};
@@ -20,14 +24,17 @@ void openGate() {
     // done!
 }
 
-void moveForward(int time) {
+void move_forward(int time) {
     set_motors(1, 30);
-    set_motors(3, 60);
+    set_motors(3, 65);
     hardware_exchange();
     sleep(time);
-    set_motors(1, 45);
-    set_motors(3, 45);
+    set_motors(1, 48);
+    set_motors(3, 48);
     hardware_exchange();
+}
+
+void move_on_line() {
 }
 
 
@@ -36,8 +43,7 @@ int main() {
     err = init(0);
 
     // quad1
-    opengate();
-    moveForward(4);
+    open_gate();
 
     //move forward for an amount of time until reach quad2
 

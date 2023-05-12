@@ -1,4 +1,4 @@
-#include"E101.h"
+#include "E101.h"
 bool isBlack(int row, int col) {
     /**
      * This function takes the row and column of the desired pixel as integers.
