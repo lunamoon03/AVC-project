@@ -1,7 +1,6 @@
 #include <iostream>
 #include "E101.h"
 #include "isColour.h"
-#include "blackLine.h"
 #include <unistd.h>
 #include <vector>
 #include <iterator>
@@ -33,6 +32,39 @@ void move_forward(int time) {
     set_motors(3, 48);
     hardware_exchange();
 }
+
+std::vector<int> get_line(int &row) {
+    std::vector<int> line;
+    for (int col = 0; col < 320; col++) {
+	if (isBlack(row, col)) {
+	    line.push_back(1);
+	} else {
+	    line.push_back(0);
+	}
+    }
+    row++;
+    return line;
+}
+
+std::vector<int> generate_error_vec(int base_size) {
+    int mid = base_size/2;
+    std::vector<int> error_vec(base_size);
+    //std::iota(error_vec.begin(), error_vec.end()
+    
+    for (int i = 0; i < base_size; i++) {
+	error_vec.push_back(i-mid);
+    }
+    
+    return error_vec;
+}
+
+
+void convert_line_to_error(std::vector<int> &line, std::vector<int> error_vec) {
+    for (int i = 0; i < line.size(); i++) {
+	line[i] *= error_vec[i];
+    }
+}
+
 
 void move_on_line() {
 }
