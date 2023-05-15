@@ -5,6 +5,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <numeric>
 
 void open_gate() {
     char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
@@ -33,40 +34,56 @@ void move_forward(int time) {
     hardware_exchange();
 }
 
-std::vector<int> get_line(int &row) {
+
+// get vector of center line black pixels for quad2
+std::vector<int> get_center_line(int row, int cols) {
     std::vector<int> line;
-    for (int col = 0; col < 320; col++) {
+    for (int col = 0; col < cols; col++) {
 	if (isBlack(row, col)) {
 	    line.push_back(1);
 	} else {
 	    line.push_back(0);
 	}
     }
-    row++;
     return line;
 }
 
-std::vector<int> generate_error_vec(int base_size) {
-    int mid = base_size/2;
-    std::vector<int> error_vec(base_size);
-    //std::iota(error_vec.begin(), error_vec.end()
+// returns an int vector where each value is the index of that value minus the index of the middle value
+std::vector<int>  generate_error_vec(int size) {
+    // init vector and fill using iota
+    std::vector<int> v(size);
+    std::iota(v.begin(), v.end(), 0);
     
-    for (int i = 0; i < base_size; i++) {
-	error_vec.push_back(i-mid);
+    // create iterator and find mid value
+    std::vector<int>::iterator i;
+    int mid = v[v.size()/2];
+    
+    // subtract mid from each value
+    for (i = v.begin(); i < v.end(); i++) {
+	*i -= mid;
     }
     
-    return error_vec;
+    return v;
 }
 
-
+// multiplies all values in one vector by their corresponding value in another vector
 void convert_line_to_error(std::vector<int> &line, std::vector<int> error_vec) {
     for (int i = 0; i < line.size(); i++) {
 	line[i] *= error_vec[i];
     }
 }
 
+// returns how far off the centre the black line is for quad2
+int get_quad1_error() {
+    int img_height = 240;
+    int img_width = 320;
+    
+    //dont necessarily want to be making a new error vector every time - may make parameter
+    std::vector<int> error_vec = generate_error_vec(img_width);
 
-void move_on_line() {
+    std::vector<int> line = get_center_line(img_height/2, img_width);
+    convert_line_to_error(line, generate_error_vec(line.size()));
+    return std::accumulate(line.begin(), line.end(), 0);
 }
 
 
