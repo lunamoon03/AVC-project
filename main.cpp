@@ -24,16 +24,19 @@ void open_gate() {
     // done!
 }
 
+void stop_motors() {
+    set_motors(1, 48);
+    set_motors(1, 48);
+    hardware_exchange();
+}
+
 void move_forward(int time) {
     set_motors(1, 30);
     set_motors(3, 65);
     hardware_exchange();
     sleep(time);
-    set_motors(1, 48);
-    set_motors(3, 48);
-    hardware_exchange();
+    stop_motors();
 }
-
 
 // returns an int vector where each value is the index of that value minus the index of the middle value
 void  generate_error_vec(int size, std::vector<int>& v) {
@@ -85,12 +88,48 @@ void quad1() {
     int img_width = 320;
     std::vector<int> error_vec;
     generate_error_vec(img_width, error_vec);
+    int v_go_r = 65;
+    int v_go_l = 30;
+    int tick = 100; //ms
+    int Kp = 3;
+    int Kd = 1;
     
     // set up other fields
-    int error;
+    int curr_error;
+    int prev_error = 0;
+    unsigned char v_l = v_go_l;
+    unsigned char v_r = v_go_r;
+    double err_delta;
+    double delta_vel;
+    
+    set_motors(1, v_l);
+    set_motors(3, v_r);
+    hardware_exchange();
     
     while (true) {
-	error = get_quad1_error(img_height, img_width, error_vec);
+	// turn proportional to error while still going forward
+	// adjust speed of appropriate wheel - assume 1 is left and 3 is right
+	// and 1 is going clockwise (65 is forward)
+	// and 3 is going counter-clockwise (30 is forward)
+	// midpoint is 45
+	
+	// adjustment = Kp*error + Kd*de/dt
+	// adjustment = difference between left and right speeds
+	take_picture();
+	curr_error = get_quad1_error(img_height, img_width, error_vec);
+	err_delta = (curr_error-prev_error)/tick;
+	delta_vel = Kp * curr_error + Kd * err_delta;
+	
+	
+	v_l = v_go_l + delta_vel;
+	v_r = v_go_r + delta_vel;
+	
+	set_motors(1, v_l);
+	set_motors(3, v_r);
+	hardware_exchange();
+	
+	prev_error = curr_error;
+	sleep(tick);
     }
 }
     
