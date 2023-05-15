@@ -35,23 +35,9 @@ void move_forward(int time) {
 }
 
 
-// get vector of center line black pixels for quad2
-std::vector<int> get_center_line(int row, int cols) {
-    std::vector<int> line;
-    for (int col = 0; col < cols; col++) {
-	if (isBlack(row, col)) {
-	    line.push_back(1);
-	} else {
-	    line.push_back(0);
-	}
-    }
-    return line;
-}
-
 // returns an int vector where each value is the index of that value minus the index of the middle value
-std::vector<int>  generate_error_vec(int size) {
+void  generate_error_vec(int size, std::vector<int>& v) {
     // init vector and fill using iota
-    std::vector<int> v(size);
     std::iota(v.begin(), v.end(), 0);
     
     // create iterator and find mid value
@@ -63,29 +49,51 @@ std::vector<int>  generate_error_vec(int size) {
 	*i -= mid;
     }
     
-    return v;
+}
+
+// get vector of center line black pixels for quad2
+void get_center_line(int row, int cols, std::vector<int>& line) {
+    for (int col = 0; col < cols; col++) {
+	if (isBlack(row, col)) {
+	    line.push_back(1);
+	} else {
+	    line.push_back(0);
+	}
+    }
 }
 
 // multiplies all values in one vector by their corresponding value in another vector
-void convert_line_to_error(std::vector<int> &line, std::vector<int> error_vec) {
+void convert_line_to_error(std::vector<int>& line, std::vector<int>& error_vec) {
     for (int i = 0; i < line.size(); i++) {
 	line[i] *= error_vec[i];
     }
 }
 
 // returns how far off the centre the black line is for quad2
-int get_quad1_error() {
-    int img_height = 240;
-    int img_width = 320;
-    
+int get_quad1_error(int img_height, int img_width, std::vector<int>& error_vec) {
     //dont necessarily want to be making a new error vector every time - may make parameter
-    std::vector<int> error_vec = generate_error_vec(img_width);
-
-    std::vector<int> line = get_center_line(img_height/2, img_width);
-    convert_line_to_error(line, generate_error_vec(line.size()));
+    
+    std::vector<int> line;
+    get_center_line(img_height/2, img_width, line);
+    convert_line_to_error(line, error_vec);
     return std::accumulate(line.begin(), line.end(), 0);
 }
 
+void quad1() {
+    // set up unchanging quad1 fields
+    int img_height = 240;
+    int img_width = 320;
+    std::vector<int> error_vec;
+    generate_error_vec(img_width, error_vec);
+    
+    // set up other fields
+    int error;
+    
+    while (true) {
+	error = get_quad1_error(img_height, img_width, error_vec);
+    }
+}
+    
 
 int main() {
     int err;
