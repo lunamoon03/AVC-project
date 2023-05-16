@@ -8,6 +8,7 @@
 #include <numeric>
 
 void open_gate() {
+    std::cout<<"Opening Gate"<<std::endl<<std::endl;
     char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
     int server_port = 1024;
     char message [24] = {'P', 'l', 'e', 'a', 's', 'e', '\0'};
@@ -88,12 +89,12 @@ void quad1() {
     int img_width = 320;
     std::vector<int> error_vec;
     generate_error_vec(img_width, error_vec);
-    int v_go_r = 42;
-    int v_go_l = 54;
+    int v_go_r = 42; // 6 less than midpoint
+    int v_go_l = 54; // 6 more than midpoint
     int tick = 100; //ms
     double tick_sec = 1/100;
-    double Kp = 0.003;
-    double Kd = 0.00001;
+    double Kp = 0.003; // emphasis on current error
+    double Kd = 0.00001; // emphasis on previous error
     
     // set up other fields
     int curr_error;
@@ -110,9 +111,7 @@ void quad1() {
     while (true) {
 	// turn proportional to error while still going forward
 	// adjust speed of appropriate wheel - assume 1 is left and 3 is right
-	// and 1 is going clockwise (65 is forward)
-	// and 3 is going counter-clockwise (30 is forward)
-	// midpoint is 45
+	// midpoint is 48
 	
 	// adjustment = Kp*error + Kd*de/dt
 	// adjustment = difference between left and right speeds
@@ -121,9 +120,14 @@ void quad1() {
 	err_delta = (curr_error-prev_error)/tick_sec;
 	delta_vel = Kp * curr_error + Kd * err_delta;
 	
+	std::cout<<"current error: "<<curr_error<<std::endl;
+	std::cout<<"velocity delta: "<<delta_vel<<std::endl<<std::endl;
 	
 	v_l = v_go_l + delta_vel;
 	v_r = v_go_r + delta_vel;
+	
+	std::cout<<"left: "<<v_l<<std::endl<<std::endl;
+	std::cout<<"right: "<<v_r<<std::endl<<std::endl;
 	
 	set_motors(1, v_l);
 	set_motors(3, v_r);
