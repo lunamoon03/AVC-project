@@ -88,11 +88,12 @@ void quad1() {
     int img_width = 320;
     std::vector<int> error_vec;
     generate_error_vec(img_width, error_vec);
-    int v_go_r = 65;
-    int v_go_l = 30;
+    int v_go_r = 42;
+    int v_go_l = 54;
     int tick = 100; //ms
-    int Kp = 3;
-    int Kd = 1;
+    double tick_sec = 1/100;
+    double Kp = 0.003;
+    double Kd = 0.00001;
     
     // set up other fields
     int curr_error;
@@ -117,7 +118,7 @@ void quad1() {
 	// adjustment = difference between left and right speeds
 	take_picture();
 	curr_error = get_quad1_error(img_height, img_width, error_vec);
-	err_delta = (curr_error-prev_error)/tick;
+	err_delta = (curr_error-prev_error)/tick_sec;
 	delta_vel = Kp * curr_error + Kd * err_delta;
 	
 	
