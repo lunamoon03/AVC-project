@@ -182,6 +182,21 @@ void findBoundingBox(int& boundingBox) {
    boundingBox[1] = rightMostBlack;
    boundingBox[2] = topMostBlack;
    boundingBox[3] = bottomMostBlack;
+}
+
+void branchingPathDetection(bool& directions){
+    /**
+     * Takes a reference to an array of strings.
+     * Gets the bounding box and determines what directions can be moved in
+     * Then updates the array of strings with that.
+     * This function expects the robot to be aligned with the path
+     * Directions 0 is left, 1 is forward, 2 is right
+    */
+   int boundingBox[4];
+   findBoundingBox(boundingBox);
+   if (boundingBox[0] < 5) directions[0] = true;
+   if (boundingBox[1] > 315) directions[2] = true;
+   if (boundingBox[2] < 5) directions[1] = true;
 
 }
 
