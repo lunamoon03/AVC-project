@@ -23,7 +23,7 @@ AVC Project plan
 - [Straight movement function](#_straight_movement_function)
 - [Centring function](#_centring_function)
 - [Black pixel detection](#_black_pixel_detection)
-- [Quadrant 3 detector](#_quadrant_detector)
+- [Quadrant change detector](#_quadrant_detector)
 - Makefile
 ## <a name="_quadrant_1"></a>Quadrant 1
 - [Gate opener](#_gate_opener)
@@ -39,7 +39,6 @@ AVC Project plan
 - [“Ball” pusher](#_ball_pusher)
 - [Cylinder approacher](#_cylinder_approacher)
 - [Find next cylinder](#_find_next_cylinder)
-- [Quadrant 4 solver](#_quadrant_4_solver)
 # Hardware Plan
 - Support method
 - Steering method
@@ -87,12 +86,12 @@ Should take the x and the y of the pixel to check if its black and then return a
 
 Should check if its black by checking if RGB are below a certain thresh hold and are relatively equal.
 
-# <a name="_quadrant_detector"></a>Quadrant 3 detector
+# <a name="_quadrant_detector"></a>Quadrant change detector
 From [useful functions](#_useful_functions)
 
-This function should check if the program has reached the start of quadrant 3.
+This function should check if the program has reached the start of quadrant 3 or 4.
 
-It should return a bool. It seems currently there is a red hexagon which denotes the transition from quadrant 2 to 3. I do not have confirmation that this will stay so if it is removed a different method might be required. But for now it can just keep the camera in place and check if there are a certain number of red pixels. Is there is it should return true.
+It should return a bool. It seems currently there is a red hexagon which denotes the transition from quadrants. Keep the camera in place and check if there are a certain number of red pixels. Is there is it should return true.
 
 
 
@@ -106,7 +105,7 @@ This function should open the gate when called. First it connects to the server 
 # Quadrant 2 solver
 From Quadrant 2
 
-This function should Using the move forward function and the centering function to navigate through quadrant 1 and quadrant 2. It should also frequently call Quadrant 3 detector to determine if it has change quadrants.
+This function should Using the move forward function and the centering function to navigate through quadrant 1 and quadrant 2. It should also frequently call Quadrant change detector to determine if it has change quadrants.
 # Branching path detection
 From [Quadrant 3](#_quadrant_3)
 
@@ -127,11 +126,10 @@ This function should navigate through quadrant 3 when called. It should call bra
 
 Methods: Hard code the route. This method should be simple to implement but, is vulnerable to getting lost while navigating. If this occurs the robot won’t be able to pass quadrant 3
 
-Maze navigator. This method would likely be always choosing the leftmost route. This means it could still solve the maze even if the robot somehow got lost. The issue with this method is that it would require a special function to detect when the robot reaches the correct end otherwise the robot will simply ignore the end of the quadrant. The robot will also require a method for navigating dead ends in the maze which the previous wouldn’t. We could solve the end detection issue by raising the camera and looking for the green cylinder which should be directly visible from the correct end of the path.
-# <a name="_quadrant_4_detector"></a>Quadrant 4 detector
-From [quadrant 3](#_quadrant_3)
+Maze navigator. This method would likely be always choosing the leftmost route. This means it could still solve the maze even if the robot somehow got lost. The issue with this method is that it would require a special function to detect when the robot reaches the correct end otherwise the robot will simply ignore the end of the quadrant. The robot will also require a method for navigating dead ends in the maze which the previous wouldn’t.
 
-This function should raise the camera (Increase the pitch). Until it is perpendicular to the ground. This function should return a Boolean. It should look count the number of green pixels (The green cylinder is directly visible from the end of Q3) and it they are above a certain threshold return true.
+In both methods the function should call quadrant change detector but only after the first turn has been passed to prevent detecting one change twice
+
 
 
 # <a name="_cylinder_distance_estimator"></a>Cylinder distance estimator
