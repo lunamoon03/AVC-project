@@ -134,7 +134,7 @@ void quad1() {
 }
     
 
-bool quadrant3Detector() {
+bool quadrantChangeDetector() {
     /**
      * This function counts the number of red pixels
      * If there are enough red pixels it returns true
@@ -142,7 +142,13 @@ bool quadrant3Detector() {
     */
     int count = 0;
     const int MIN_REQ_RED = 0;
-    
+    for (int row = 0; row < 240; row++){
+        for (int col = 0; col < 320; col++){
+            if (isRed(row, col)) count++;
+        }
+    }
+    if (count >= MIN_REQ_RED) return true;
+    return false;
 }
 
 
