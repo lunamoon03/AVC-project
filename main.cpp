@@ -31,6 +31,18 @@ void moveForward(int time) {
 }
 
 
+bool quadrant3Detector() {
+    /**
+     * This function counts the number of red pixels
+     * If there are enough red pixels it returns true
+     * All other cases false
+    */
+    int count = 0;
+    const int MIN_REQ_RED = 0;
+    
+}
+
+
 int main() {
     int err;
     err = init(0);
