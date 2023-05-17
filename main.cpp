@@ -137,6 +137,50 @@ bool quadrantChangeDetector() {
     return false;
 }
 
+void findBoundingBox(int& boundingBox) {
+    /**
+     * Takes a Reference (Might need to be a pointer) to an array of ints. And changes the values to represent the bounding box of black lines
+     * The array should have four elements in it.
+    */
+   int leftMostBlack = 400;
+   int rightMostBlack = -100;
+   int topMostBlack = 400;
+   int bottomMostBlack = 0;
+   take_picture();
+   for (int row = 0; row <240; row++){
+        for (int col = 0; col < 320; col++){
+            if (isBlack(row, col)) {
+                // Update the bounding box based on the location of the pixels
+                if (leftMostBlack > col) leftMostBlack = col;
+                if (rightMostBlack < col) rightMostBlack = col;
+                if (topMostBlack > row) topMostBlack = row;
+                if (bottomMostBlack < row) bottomMostBlack = row;
+            }
+        }
+   }
+   // Update the array with the bounding box
+   boundingBox[0] = leftMostBlack;
+   boundingBox[1] = rightMostBlack;
+   boundingBox[2] = topMostBlack;
+   boundingBox[3] = bottomMostBlack;
+}
+
+void branchingPathDetection(bool& directions){
+    /**
+     * Takes a reference to an array of strings.
+     * Gets the bounding box and determines what directions can be moved in
+     * Then updates the array of strings with that.
+     * This function expects the robot to be aligned with the path
+     * Directions 0 is left, 1 is forward, 2 is right
+    */
+   int boundingBox[4];
+   findBoundingBox(boundingBox);
+   if (boundingBox[0] < 5) directions[0] = true;
+   if (boundingBox[1] > 315) directions[2] = true;
+   if (boundingBox[2] < 5) directions[1] = true;
+
+}
+
 
 int main() {
     int err;
