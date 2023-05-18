@@ -77,17 +77,16 @@ void quad2() {
     
     int v_go_r = 42; // 6 less than midpoint
     int v_go_l = 54; // 6 more than midpoint
-    int tick = 100; //ms
-    double tick_sec = 1/100;
-    double Kp = 0.003; // emphasis on current error
-    double Kd = 0.00001; // emphasis on previous error
+    double tick = 1; //seconds
+    double Kp = 0.0003; // emphasis on current error
+    //double Kd = 0.00001; // emphasis on previous error
     
     // set up other fields
     int curr_error;
-    int prev_error = 0;
-    unsigned char v_l = v_go_l;
-    unsigned char v_r = v_go_r;
-    double err_delta;
+    //int prev_error = 0;
+    int  v_l = v_go_l;
+    int  v_r = v_go_r;
+    //double err_delta;
     double delta_vel;
     
     set_motors(1, v_l);
@@ -104,30 +103,33 @@ void quad2() {
 	// adjustment = difference between left and right speeds
 	take_picture();
 	curr_error = get_quad2_error(img_height, img_width, error_vec);
-	err_delta = (curr_error-prev_error)/tick_sec;
-	delta_vel = Kp * curr_error + Kd * err_delta;
-	
+	//err_delta = (curr_error-prev_error)/tick;
+	delta_vel = Kp * curr_error;// + Kd * err_delta;
 	v_l = v_go_l + delta_vel;
 	v_r = v_go_r + delta_vel;
+	//set_motors(1, v_l);
+	//set_motors(3, v_r);
+	std::cout<<v_l<<std::endl;
+	std::cout<<v_r<<std::endl;
+        std::cout<<curr_error<<std::endl;
+	//std::cout<<err_delta<<std::endl;
+	std::cout<<delta_vel<<std::endl;
+	//hardware_exchange();
 	
-	set_motors(1, v_l);
-	set_motors(3, v_r);
-	hardware_exchange();
-	
-	prev_error = curr_error;
+	//prev_error = curr_error;
 	sleep(tick);
     }
 }
     
 
-bool quadrantChangeDetector() {
+/*bool quadrantChangeDetector() {
     /**
      * This function counts the number of red pixels
      * If there are enough red pixels it returns true
      * All other cases false
-    */
+    
     int count = 0;
-    const int MIN_REQ_RED = 1500; // Value is not tested just a guess
+    const int MIN_REQ_RED = 0;
     for (int row = 0; row < 240; row++){
         for (int col = 0; col < 320; col++){
             if (isRed(row, col)) count++;
@@ -141,7 +143,7 @@ void findBoundingBox(int& boundingBox) {
     /**
      * Takes a Reference (Might need to be a pointer) to an array of ints. And changes the values to represent the bounding box of black lines
      * The array should have four elements in it.
-    */
+    
    int leftMostBlack = 400;
    int rightMostBlack = -100;
    int topMostBlack = 400;
@@ -172,14 +174,14 @@ void branchingPathDetection(bool& directions){
      * Then updates the array of strings with that.
      * This function expects the robot to be aligned with the path
      * Directions 0 is left, 1 is forward, 2 is right
-    */
+    
    int boundingBox[4];
    findBoundingBox(boundingBox);
    if (boundingBox[0] < 5) directions[0] = true;
    if (boundingBox[1] > 315) directions[2] = true;
    if (boundingBox[2] < 5) directions[1] = true;
 
-}
+}*/
 
 
 int main() {
