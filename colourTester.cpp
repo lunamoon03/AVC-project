@@ -2,6 +2,8 @@
 #include"E101.h"
 #include"isColour.h"
 
+using namespace std;
+
 int main(){
     int err;
     err = init(0);
@@ -15,6 +17,6 @@ int main(){
             }
         }
         cout<<i<<": Orange pixels ="<<orangeCount<<endl;
-    }
+    }   
     return 0;
 }
