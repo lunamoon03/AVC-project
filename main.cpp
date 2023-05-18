@@ -146,7 +146,7 @@ bool quadrantChangeDetector() {
      * All other cases false
     */
     int count = 0;
-    const int MIN_REQ_RED = 0;
+    const int MIN_REQ_RED = 1500; // Value is not tested just a guess
     for (int row = 0; row < 240; row++){
         for (int col = 0; col < 320; col++){
             if (isRed(row, col)) count++;
@@ -212,7 +212,7 @@ int main() {
 
     // quad2
 
-    // quad 3
+    // quad3
 
     // quad4
 
