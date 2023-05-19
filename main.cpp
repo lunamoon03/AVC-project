@@ -78,10 +78,10 @@ void quad2() {
 
     int zero_speed = 48;
     int left_base = zero_speed-6;
-    int left_speed = 0;
+    int left_speed;
     int right_base = zero_speed+6;
-    int right_speed = 0;
-    double kp = 0.3;
+    int right_speed;
+    double kp = 0.25;
 
     make_error_vec(error_vec, img_width);
 
@@ -178,6 +178,7 @@ void branchingPathDetection(bool& directions){
 int main() {
     int err;
     err = init(0);
+    stoph();
 
     // quad1
     open_gate();
