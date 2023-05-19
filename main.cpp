@@ -42,18 +42,20 @@ void move_forward(int time) {
 // get vector of center line black pixels for quad2
 void get_center_line(int row, int cols, std::vector<int>& line) {
     for (int col = 0; col < cols; col++) {
-	if (isBlack(row, col)) {
-	    line.push_back(1);
-	} else {
-	    line.push_back(0);
-	}
+        if (isBlack(row, col)) {
+            line.push_back(1);
+        } else {
+            line.push_back(0);
+        }
     }
 }
 
 // multiplies all values in one vector by their corresponding value in another vector
 void convert_line_to_error(std::vector<int>& line, std::vector<int>& error_vec) {
+    int j = -160;
     for (unsigned int i = 0; i < line.size(); i++) {
-	    line[i] *= error_vec[i];
+	line[i] *= error_vec[j];
+        j++;
     }
 }
 
@@ -64,7 +66,22 @@ int get_quad2_error(int img_height, int img_width, std::vector<int>& error_vec) 
     std::vector<int> line;
     get_center_line(img_height/2, img_width, line);
     convert_line_to_error(line, error_vec);
-    return std::accumulate(line.begin(), line.end(), 0);
+    int result = 0;
+    for (int i = 0; i < img_width; i++) {
+        result += line[i];
+        std::cout << line[i] << std::endl;
+        std::cout << result << std::endl;
+    }
+    return result;
+    //return std::accumulate(line.begin(), line.end(), 0);
+}
+
+void make_error_vec(std::vector<int> &vector, int size) {
+    int j = -160;
+    for (int i = 0; i < 320; i++) {
+        vector.push_back(j);
+        j++;
+    }
 }
 
 void quad2() {
@@ -73,20 +90,17 @@ void quad2() {
     int img_width = 320;
     //create error vec -160 to 159 values
     std::vector<int> error_vec(img_width);
-    std::iota(error_vec.begin(), error_vec.end(), img_width/2);
+    make_error_vec(error_vec, img_width);
     
     int v_go_r = 42; // 6 less than midpoint
     int v_go_l = 54; // 6 more than midpoint
     double tick = 1; //seconds
-    double Kp = 0.0003; // emphasis on current error
-    //double Kd = 0.00001; // emphasis on previous error
-    
+    double Kp = 0.0005; // emphasis on current error
+
     // set up other fields
     int curr_error;
-    //int prev_error = 0;
     int  v_l = v_go_l;
     int  v_r = v_go_r;
-    //double err_delta;
     double delta_vel;
     
     set_motors(1, v_l);
@@ -101,23 +115,28 @@ void quad2() {
 	
 	// adjustment = Kp*error + Kd*de/dt
 	// adjustment = difference between left and right speeds
-	take_picture();
-	curr_error = get_quad2_error(img_height, img_width, error_vec);
-	//err_delta = (curr_error-prev_error)/tick;
-	delta_vel = Kp * curr_error;// + Kd * err_delta;
-	v_l = v_go_l + delta_vel;
-	v_r = v_go_r + delta_vel;
-	//set_motors(1, v_l);
-	//set_motors(3, v_r);
-	std::cout<<v_l<<std::endl;
-	std::cout<<v_r<<std::endl;
+        take_picture();
+        curr_error = get_quad2_error(img_height, img_width, error_vec);
+
+        if (true) { //if there is black in the image
+            delta_vel = Kp * curr_error;
+            v_l = v_go_l + delta_vel;
+            v_r = v_go_r + delta_vel;
+        } else {
+            // reverse
+            v_l = v_go_r;
+            v_r = v_go_l;
+        }
         std::cout<<curr_error<<std::endl;
-	//std::cout<<err_delta<<std::endl;
-	std::cout<<delta_vel<<std::endl;
-	//hardware_exchange();
-	
-	//prev_error = curr_error;
-	sleep(tick);
+        std::cout<<v_r<<std::endl;
+        std::cout<<v_l<<std::endl;
+
+        set_motors(1, v_l);
+        set_motors(3, v_r);
+
+        hardware_exchange();
+
+        sleep(tick);
     }
 }
     
