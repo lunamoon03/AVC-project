@@ -1,7 +1,7 @@
 |**Start Date**|**Task**|**Person**|**End Date**|**Outcome**|**Progress As Of 22-May**|
 | :-: | :-: | :-: | :-: | :-: | :-: |
 |10/5/23|Project Plan|Luna/Jacob|13/5/23|Project Plan is done to all active team member’s satisfaction.|**Completed**|
-|10/5/23|Open gate|Luna|13/5/23|Robot is able to open gate||**Completed**|
+|10/5/23|Open gate|Luna|13/5/23|Robot is able to open gate|**Completed**|
 |12/5/23|Basic movement functions|Luna|17/5/23|Basic functions for movement (move straight for certain distance, turn left/right by certain amount)|**Completed but needs testing**|
 |12/5/23|Basic black line detection|Luna|17/5/23|Robot is able to detect the black line, and ideally move along it enough to get through quadrant 2|**Completed but needs testing**|
 |12/5/23|Hardware prototype|Jesse|20/5/23|Hardware in good enough shape that features can be tested. This is possibly going to be quite difficult|**Completed but needs testing**|
