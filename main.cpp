@@ -286,24 +286,40 @@ void quad3(){
      * 
      * 
     */
-   // Change from true to check if its the next quadrant
-   while (true){
+   // Will require to not be on the change from the previous quadrant too work.
+   // Should probably just move forward a bit before this happens
+   while (!quadrantChangeDetector()){
     bool directions[3];
     branchingPathDetection(directions);
     if (directions[0]){
         // Do stuff to turn left
+        // Keep going forward until the camera can no longer see left
+        while(directions[0]){
+            set_motors(1, 54);
+            set_motors(3, 54);
+            hardware_exchange();
+            branchingPathDetection(directions);
+        }
+        quad3Turn(0);
     } else if (directions[1]){
         // go forwards
         // Will need to center somehow
         set_motors(1, 58);
         set_motors(3, 58);
     } else if (directions[2]){
-        // Do stuff to turn left
+        // Do stuff to turn right
+        while(directions[2]){
+            set_motors(1, 54);
+            set_motors(3, 54);
+            hardware_exchange();
+            branchingPathDetection(directions);
+        }
+        quad3Turn(1);
     } else {
         // When in doubt turn left
+        quad3Turn(0);
     }
     hardware_exchange();
-    
    }
 }
 
