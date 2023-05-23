@@ -174,6 +174,51 @@ void branchingPathDetection(bool& directions){
 
 }*/
 
+void quad3Turn(int direction){
+    /**
+     * This function handles turning in quadrant 3.  
+     * It takes the direction to turn in as an int where 0 is left and 1 is right.
+     * Then it turns in that direction until a white pixel is in the center of the screen.
+     * Then it stops turning when a black pixel is detected.
+     * After this function is called the robot needs to be centered somehow
+    */
+   while(isBlack(120, 160)){
+    if (direction = 0){
+        // left motor
+        set_motors(1, 28);
+        // right motor
+        set_motors(3, 68);
+    } else {
+        // left
+        set_motors(1, 68);
+        // right
+        set_motors(3,28);
+    }
+    hardware_exchange();
+   }
+   while (!isBlack(120, 160)){
+    if (direction = 0){
+        // left motor
+        set_motors(1, 28);
+        // right motor
+        set_motors(3, 68);
+    } else {
+        // left
+        set_motors(1, 68);
+        // right
+        set_motors(3,28);
+    }
+        
+    hardware_exchange();
+   }
+   // Stop movement
+   // left motor
+        set_motors(1, 48);
+        // right motor
+        set_motors(3, 48);
+    hardware_exchange();
+}
+
 
 int main() {
     int err;
