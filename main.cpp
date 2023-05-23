@@ -39,6 +39,17 @@ void move_forward(int time) {
     stop_motors();
 }
 
+// get vector of center line black pixels for quad2
+void get_center_line(int row, int cols, std::vector<int>& line) {
+    for (int col = 0; col < cols; col++) {
+        if (isBlack(row, col)) {
+            line.push_back(1);
+        } else {
+            line.push_back(0);
+        }
+    }
+}
+
 int calc_error(std::vector<int>& line, std::vector<int>& error_vec) {
     int error = 0;
     for (int i = 0; i < 320; i++) {
@@ -46,6 +57,16 @@ int calc_error(std::vector<int>& line, std::vector<int>& error_vec) {
     }
     return error;
 }
+
+// multiplies all values in one vector by their corresponding value in another vector
+void convert_line_to_error(std::vector<int>& line, std::vector<int>& error_vec) {
+    int j = -160;
+    for (unsigned int i = 0; i < line.size(); i++) {
+	line[i] *= error_vec[j];
+        j++;
+    }
+}
+
 
 int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
     int num_black_pixels = 0;
@@ -62,6 +83,22 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height
         }
     }
     return num_black_pixels;
+}
+
+// returns how far off the centre the black line is for quad2
+int get_quad2_error(int img_height, int img_width, std::vector<int>& error_vec) {
+    //dont necessarily want to be making a new error vector every time - may make parameter
+    std::vector<int> line;
+    get_center_line(img_height/2, img_width, line);
+    convert_line_to_error(line, error_vec);
+    int result = 0;
+    for (int i = 0; i < img_width; i++) {
+        result += line[i];
+        std::cout << line[i] << std::endl;
+        std::cout << result << std::endl;
+    }
+    return result;
+    //return std::accumulate(line.begin(), line.end(), 0);
 }
 
 int read_n_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
@@ -88,8 +125,6 @@ void make_error_vec(std::vector<int>& error_vec, int img_width) {
 }
 
 void quad2() {
-    int img_height = 240;
-    int img_width = 320;
     double tick = 0.01; // 10ms
     std::vector<int> error_vec;
     std::vector<int> line;
@@ -101,6 +136,8 @@ void quad2() {
     int left_speed;
     int right_base = zero_speed+6;
     int right_speed;
+    int img_width = 320;
+    int img_height = 240;
     double kp = 0.25;
 
     make_error_vec(error_vec, img_width);
@@ -205,7 +242,7 @@ void quad3Turn(int direction){
      * After this function is called the robot needs to be centered somehow
     */
    while(isBlack(120, 160)){
-    if (direction = 0){
+    if (direction == 0){
         // left motor
         set_motors(1, 28);
         // right motor
@@ -219,7 +256,7 @@ void quad3Turn(int direction){
     hardware_exchange();
    }
    while (!isBlack(120, 160)){
-    if (direction = 0){
+    if (direction == 0){
         // left motor
         set_motors(1, 28);
         // right motor
