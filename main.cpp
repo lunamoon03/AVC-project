@@ -47,17 +47,36 @@ int calc_error(std::vector<int>& line, std::vector<int>& error_vec) {
     return error;
 }
 
-int read_middle_line(std::vector<int>& line, int img_height, int img_width) {
-    int num_hits = 0;
+int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
+    int num_black_pixels = 0;
+    num_red_pixels = 0;
     for (int i = 0; i < img_width; i++) {
         if (isBlack(img_height/2, i)) {
             line.push_back(1);
-            num_hits++;
+            num_black_pixels++;
+        } else {
+            line.push_back(0);
+        }
+        if (isRed(img_height/2, i)) {
+            num_red_pixels++;
+        }
+    }
+    return num_black_pixels;
+}
+
+int read_n_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
+    int num_black_pixels = 0;
+    num_red_pixels = 0;
+    for (int i = 0; i < img_height; i++) {
+        if(isBlack(i, img_width/3)) {
+            line.push_back(1);
+            num_black_pixels++;
         } else {
             line.push_back(0);
         }
     }
-    return num_hits;
+
+    return num_black_pixels;
 }
 
 void make_error_vec(std::vector<int>& error_vec, int img_width) {
@@ -75,6 +94,7 @@ void quad2() {
     std::vector<int> error_vec;
     std::vector<int> line;
     int num_black_pixels;
+    int num_red_pixels;
 
     int zero_speed = 48;
     int left_base = zero_speed-6;
@@ -89,11 +109,13 @@ void quad2() {
         take_picture();
         // clear line so that new values may be entered
         line.clear();
-        num_black_pixels = read_middle_line(line, img_height, img_width);
+        num_black_pixels = read_middle_line(line, num_red_pixels, img_height, img_width);
         int error = calc_error(line, error_vec);
 
         // normalise error
-        if (num_black_pixels != 0) {
+        if (num_red_pixels > 30) { //?? on the threshold value there
+            break; // leave quad2 code
+        } else if (num_black_pixels != 0) {
             error /= num_black_pixels;
             left_speed = left_base + (error * kp);
             right_speed = right_base - (error * kp);
