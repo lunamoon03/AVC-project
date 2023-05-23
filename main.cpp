@@ -243,29 +243,21 @@ void quad3Turn(int direction){
     */
    while(isBlack(120, 160)){
     if (direction == 0){
-        // left motor
-        set_motors(1, 28);
-        // right motor
-        set_motors(3, 68);
+        set_motors(1, 42);
+        set_motors(5, 42);
     } else {
-        // left
-        set_motors(1, 68);
-        // right
-        set_motors(3,28);
+        set_motors(1, 54);
+        set_motors(5, 54);
     }
     hardware_exchange();
    }
    while (!isBlack(120, 160)){
     if (direction == 0){
-        // left motor
-        set_motors(1, 28);
-        // right motor
-        set_motors(3, 68);
+        set_motors(1, 42);
+        set_motors(5, 42);
     } else {
-        // left
-        set_motors(1, 68);
-        // right
-        set_motors(3,28);
+        set_motors(1, 54);
+        set_motors(5, 54);
     }
         
     hardware_exchange();
@@ -274,7 +266,7 @@ void quad3Turn(int direction){
    // left motor
         set_motors(1, 48);
         // right motor
-        set_motors(3, 48);
+        set_motors(5, 48);
     hardware_exchange();
 }
 
@@ -286,6 +278,7 @@ void quad3(){
      * 
      * 
     */
+   // I SHOULD OF USED CONSTANTS IM SORRY
    // Will require to not be on the change from the previous quadrant too work.
    // Should probably just move forward a bit before this happens
    while (!quadrantChangeDetector()){
@@ -296,7 +289,7 @@ void quad3(){
         // Keep going forward until the camera can no longer see left
         while(directions[0]){
             set_motors(1, 54);
-            set_motors(3, 54);
+            set_motors(5, 42);
             hardware_exchange();
             branchingPathDetection(directions);
         }
@@ -304,13 +297,13 @@ void quad3(){
     } else if (directions[1]){
         // go forwards
         // Will need to center somehow
-        set_motors(1, 58);
-        set_motors(3, 58);
+        set_motors(1, 54);
+        set_motors(5, 42);
     } else if (directions[2]){
         // Do stuff to turn right
         while(directions[2]){
             set_motors(1, 54);
-            set_motors(3, 54);
+            set_motors(5, 42);
             hardware_exchange();
             branchingPathDetection(directions);
         }
