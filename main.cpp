@@ -50,6 +50,14 @@ void get_center_line(int row, int cols, std::vector<int>& line) {
     }
 }
 
+int calc_error(std::vector<int>& line, std::vector<int>& error_vec) {
+    int error = 0;
+    for (int i = 0; i < 320; i++) {
+        error += line[i] * error_vec[i];
+    }
+    return error;
+}
+
 // multiplies all values in one vector by their corresponding value in another vector
 void convert_line_to_error(std::vector<int>& line, std::vector<int>& error_vec) {
     int j = -160;
@@ -59,10 +67,27 @@ void convert_line_to_error(std::vector<int>& line, std::vector<int>& error_vec) 
     }
 }
 
+
+int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
+    int num_black_pixels = 0;
+    num_red_pixels = 0;
+    for (int i = 0; i < img_width; i++) {
+        if (isBlack(img_height/2, i)) {
+            line.push_back(1);
+            num_black_pixels++;
+        } else {
+            line.push_back(0);
+        }
+        if (isRed(img_height/2, i)) {
+            num_red_pixels++;
+        }
+    }
+    return num_black_pixels;
+}
+
 // returns how far off the centre the black line is for quad2
 int get_quad2_error(int img_height, int img_width, std::vector<int>& error_vec) {
     //dont necessarily want to be making a new error vector every time - may make parameter
-    
     std::vector<int> line;
     get_center_line(img_height/2, img_width, line);
     convert_line_to_error(line, error_vec);
@@ -80,60 +105,71 @@ void make_error_vec(std::vector<int> &vector, int size) {
     int j = -160;
     for (int i = 0; i < 320; i++) {
         vector.push_back(j);
+    }
+}
+
+int read_n_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
+    int num_black_pixels = 0;
+    num_red_pixels = 0;
+    for (int i = 0; i < img_height; i++) {
+        if(isBlack(i, img_width/3)) {
+            line.push_back(1);
+            num_black_pixels++;
+        } else {
+            line.push_back(0);
+        }
+    }
+
+    return num_black_pixels;
+}
+
+void make_error_vec(std::vector<int>& error_vec, int img_width) {
+    int j = -(img_width/2);
+    for (int i = 0; i < img_width; i++) {
+        error_vec.push_back(j);
         j++;
     }
 }
 
 void quad2() {
-    // set up unchanging quad1 fields
-    int img_height = 240;
-    int img_width = 320;
-    //create error vec -160 to 159 values
-    std::vector<int> error_vec(img_width);
+    double tick = 0.01; // 10ms
+    std::vector<int> error_vec;
+    std::vector<int> line;
+    int num_black_pixels;
+    int num_red_pixels;
+
+    int zero_speed = 48;
+    int left_base = zero_speed-6;
+    int left_speed;
+    int right_base = zero_speed+6;
+    int right_speed;
+    double kp = 0.25;
+
     make_error_vec(error_vec, img_width);
-    
-    int v_go_r = 42; // 6 less than midpoint
-    int v_go_l = 54; // 6 more than midpoint
-    double tick = 1; //seconds
-    double Kp = 0.0005; // emphasis on current error
 
-    // set up other fields
-    int curr_error;
-    int  v_l = v_go_l;
-    int  v_r = v_go_r;
-    double delta_vel;
-    
-    set_motors(1, v_l);
-    set_motors(3, v_r);
-    hardware_exchange();
-    
-    std::cout<<"start scanning"<<std::endl;
     while (true) {
-	// turn proportional to error while still going forward
-	// adjust speed of appropriate wheel - assume 1 is left and 3 is right
-	// midpoint is 48
-	
-	// adjustment = Kp*error + Kd*de/dt
-	// adjustment = difference between left and right speeds
         take_picture();
-        curr_error = get_quad2_error(img_height, img_width, error_vec);
+        // clear line so that new values may be entered
+        line.clear();
+        num_black_pixels = read_middle_line(line, num_red_pixels, img_height, img_width);
+        int error = calc_error(line, error_vec);
 
-        if (true) { //if there is black in the image
-            delta_vel = Kp * curr_error;
-            v_l = v_go_l + delta_vel;
-            v_r = v_go_r + delta_vel;
+        // normalise error
+        if (num_red_pixels > 30) { //?? on the threshold value there
+            break; // leave quad2 code
+        } else if (num_black_pixels != 0) {
+            error /= num_black_pixels;
+            left_speed = left_base + (error * kp);
+            right_speed = right_base - (error * kp);
+            set_motors(1, left_speed);
+            set_motors(3, right_speed);
         } else {
-            // reverse
-            v_l = v_go_r;
-            v_r = v_go_l;
+            // move backwards
+            left_speed = right_base;
+            right_speed = left_base;
+            set_motors(1, left_speed);
+            set_motors(3, right_speed);
         }
-        std::cout<<curr_error<<std::endl;
-        std::cout<<v_r<<std::endl;
-        std::cout<<v_l<<std::endl;
-
-        set_motors(1, v_l);
-        set_motors(3, v_r);
-
         hardware_exchange();
 
         sleep(tick);
@@ -202,10 +238,56 @@ void branchingPathDetection(bool& directions){
 
 }*/
 
+void quad3Turn(int direction){
+    /**
+     * This function handles turning in quadrant 3.  
+     * It takes the direction to turn in as an int where 0 is left and 1 is right.
+     * Then it turns in that direction until a white pixel is in the center of the screen.
+     * Then it stops turning when a black pixel is detected.
+     * After this function is called the robot needs to be centered somehow
+    */
+   while(isBlack(120, 160)){
+    if (direction = 0){
+        // left motor
+        set_motors(1, 28);
+        // right motor
+        set_motors(3, 68);
+    } else {
+        // left
+        set_motors(1, 68);
+        // right
+        set_motors(3,28);
+    }
+    hardware_exchange();
+   }
+   while (!isBlack(120, 160)){
+    if (direction = 0){
+        // left motor
+        set_motors(1, 28);
+        // right motor
+        set_motors(3, 68);
+    } else {
+        // left
+        set_motors(1, 68);
+        // right
+        set_motors(3,28);
+    }
+        
+    hardware_exchange();
+   }
+   // Stop movement
+   // left motor
+        set_motors(1, 48);
+        // right motor
+        set_motors(3, 48);
+    hardware_exchange();
+}
+
 
 int main() {
     int err;
     err = init(0);
+    stoph();
 
     // quad1
     open_gate();
