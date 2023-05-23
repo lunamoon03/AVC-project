@@ -101,13 +101,6 @@ int get_quad2_error(int img_height, int img_width, std::vector<int>& error_vec) 
     //return std::accumulate(line.begin(), line.end(), 0);
 }
 
-void make_error_vec(std::vector<int> &vector, int size) {
-    int j = -160;
-    for (int i = 0; i < 320; i++) {
-        vector.push_back(j);
-    }
-}
-
 int read_n_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
     int num_black_pixels = 0;
     num_red_pixels = 0;
@@ -143,6 +136,8 @@ void quad2() {
     int left_speed;
     int right_base = zero_speed+6;
     int right_speed;
+    int img_width = 320;
+    int img_height = 240;
     double kp = 0.25;
 
     make_error_vec(error_vec, img_width);
@@ -178,7 +173,7 @@ void quad2() {
     
 
 /*bool quadrantChangeDetector() {
-    /**
+
      * This function counts the number of red pixels
      * If there are enough red pixels it returns true
      * All other cases false
@@ -195,7 +190,7 @@ void quad2() {
 }
 
 void findBoundingBox(int& boundingBox) {
-    /**
+
      * Takes a Reference (Might need to be a pointer) to an array of ints. And changes the values to represent the bounding box of black lines
      * The array should have four elements in it.
     
@@ -223,7 +218,7 @@ void findBoundingBox(int& boundingBox) {
 }
 
 void branchingPathDetection(bool& directions){
-    /**
+
      * Takes a reference to an array of strings.
      * Gets the bounding box and determines what directions can be moved in
      * Then updates the array of strings with that.
@@ -247,7 +242,7 @@ void quad3Turn(int direction){
      * After this function is called the robot needs to be centered somehow
     */
    while(isBlack(120, 160)){
-    if (direction = 0){
+    if (direction == 0){
         // left motor
         set_motors(1, 28);
         // right motor
@@ -261,7 +256,7 @@ void quad3Turn(int direction){
     hardware_exchange();
    }
    while (!isBlack(120, 160)){
-    if (direction = 0){
+    if (direction == 0){
         // left motor
         set_motors(1, 28);
         // right motor
