@@ -135,12 +135,12 @@ void quad2() {
 }
     
 
-/*bool quadrantChangeDetector() {
+bool quadrantChangeDetector() {
     /**
      * This function counts the number of red pixels
      * If there are enough red pixels it returns true
      * All other cases false
-    
+    */
     int count = 0;
     const int MIN_REQ_RED = 0;
     for (int row = 0; row < 240; row++){
@@ -152,11 +152,11 @@ void quad2() {
     return false;
 }
 
-void findBoundingBox(int& boundingBox) {
+void findBoundingBox(int* boundingBox) {
     /**
      * Takes a Reference (Might need to be a pointer) to an array of ints. And changes the values to represent the bounding box of black lines
      * The array should have four elements in it.
-    
+    */
    int leftMostBlack = 400;
    int rightMostBlack = -100;
    int topMostBlack = 400;
@@ -180,21 +180,21 @@ void findBoundingBox(int& boundingBox) {
    boundingBox[3] = bottomMostBlack;
 }
 
-void branchingPathDetection(bool& directions){
+void branchingPathDetection(bool* directions){
     /**
      * Takes a reference to an array of strings.
      * Gets the bounding box and determines what directions can be moved in
      * Then updates the array of strings with that.
      * This function expects the robot to be aligned with the path
      * Directions 0 is left, 1 is forward, 2 is right
-    
+    */
    int boundingBox[4];
    findBoundingBox(boundingBox);
    if (boundingBox[0] < 5) directions[0] = true;
    if (boundingBox[1] > 315) directions[2] = true;
    if (boundingBox[2] < 5) directions[1] = true;
 
-}*/
+}
 
 void quad3Turn(int direction){
     /**
@@ -241,6 +241,34 @@ void quad3Turn(int direction){
     hardware_exchange();
 }
 
+void quad3(){
+    /**
+     * Function to navigate the robot through quadrant 3.
+     * Should keep calling branching path detection.
+     * When it reaches a branching path it should prioritise turning left, then straight, then right.
+     * 
+     * 
+    */
+   // Change from true to check if its the next quadrant
+   while (true){
+    bool directions[3];
+    branchingPathDetection(directions);
+    if (directions[0]){
+        // Do stuff to turn left
+    } else if (directions[1]){
+        // go forwards
+        // Will need to center somehow
+        set_motors(1, 58);
+        set_motors(3, 58);
+    } else if (directions[2]){
+        // Do stuff to turn left
+    } else {
+        // When in doubt turn left
+    }
+    hardware_exchange();
+    
+   }
+}
 
 int main() {
     int err;
