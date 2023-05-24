@@ -320,7 +320,7 @@ void forward(){
     * Simple function to set the robot to going forwards
     */
     set_motors(1, 54);
-    set_motors(5, 42);
+    set_motors(5, 37);
     hardware_exchange();
 }
 
