@@ -132,13 +132,15 @@ void quad2() {
     int num_red_pixels;
 
     int zero_speed = 48;
-    int left_base = zero_speed-6;
+    int left_motor = 1;
+    int left_base = zero_speed-11; // 37
     int left_speed;
-    int right_base = zero_speed+6;
+    int right_motor = 5;
+    int right_base = zero_speed+6; // 54
     int right_speed;
     int img_width = 320;
     int img_height = 240;
-    double kp = 0.25;
+    double kp = 0.1;
 
     make_error_vec(error_vec, img_width);
 
@@ -151,13 +153,21 @@ void quad2() {
 
         // normalise error
         if (num_red_pixels > 30) { //?? on the threshold value there
+            std::cout<<"Ending due to red"<<std::endl;
+            set_motors(left_motor, zero_speed);
+            set_motors(right_motor, zero_speed);
             break; // leave quad2 code
         } else if (num_black_pixels != 0) {
+            std::cout<<"black pixels"<<std::endl;
             error /= num_black_pixels;
+            std::cout<<"error: "<<error<<std::endl;
+            std::cout<<"adjustment: "<<error*kp<<std::endl;
             left_speed = left_base + (error * kp);
-            right_speed = right_base - (error * kp);
-            set_motors(1, left_speed);
-            set_motors(3, right_speed);
+            right_speed = right_base + (error * kp);
+            std::cout << "left speed: " << left_speed << std::endl;
+            std::cout << "right speed: " << right_speed << std::endl;
+            set_motors(left_motor, left_speed);
+            set_motors(right_motor, right_speed);
         } else {
             // move backwards
             left_speed = right_base;
@@ -172,12 +182,12 @@ void quad2() {
 }
     
 
-/*bool quadrantChangeDetector() {
-
+bool quadrantChangeDetector() {
+    /**
      * This function counts the number of red pixels
      * If there are enough red pixels it returns true
      * All other cases false
-    
+    */
     int count = 0;
     const int MIN_REQ_RED = 0;
     for (int row = 0; row < 240; row++){
@@ -189,11 +199,11 @@ void quad2() {
     return false;
 }
 
-void findBoundingBox(int& boundingBox) {
-
+void findBoundingBox(int* boundingBox) {
+    /**
      * Takes a Reference (Might need to be a pointer) to an array of ints. And changes the values to represent the bounding box of black lines
      * The array should have four elements in it.
-    
+    */
    int leftMostBlack = 400;
    int rightMostBlack = -100;
    int topMostBlack = 400;
@@ -217,21 +227,21 @@ void findBoundingBox(int& boundingBox) {
    boundingBox[3] = bottomMostBlack;
 }
 
-void branchingPathDetection(bool& directions){
-
+void branchingPathDetection(bool* directions){
+    /**
      * Takes a reference to an array of strings.
      * Gets the bounding box and determines what directions can be moved in
      * Then updates the array of strings with that.
      * This function expects the robot to be aligned with the path
      * Directions 0 is left, 1 is forward, 2 is right
-    
+    */
    int boundingBox[4];
    findBoundingBox(boundingBox);
    if (boundingBox[0] < 5) directions[0] = true;
    if (boundingBox[1] > 315) directions[2] = true;
    if (boundingBox[2] < 5) directions[1] = true;
 
-}*/
+}
 
 void quad3Turn(int direction){
     /**
@@ -243,29 +253,21 @@ void quad3Turn(int direction){
     */
    while(isBlack(120, 160)){
     if (direction == 0){
-        // left motor
-        set_motors(1, 28);
-        // right motor
-        set_motors(3, 68);
+        set_motors(1, 42);
+        set_motors(5, 42);
     } else {
-        // left
-        set_motors(1, 68);
-        // right
-        set_motors(3,28);
+        set_motors(1, 54);
+        set_motors(5, 54);
     }
     hardware_exchange();
    }
    while (!isBlack(120, 160)){
     if (direction == 0){
-        // left motor
-        set_motors(1, 28);
-        // right motor
-        set_motors(3, 68);
+        set_motors(1, 42);
+        set_motors(5, 42);
     } else {
-        // left
-        set_motors(1, 68);
-        // right
-        set_motors(3,28);
+        set_motors(1, 54);
+        set_motors(5, 54);
     }
         
     hardware_exchange();
@@ -274,25 +276,78 @@ void quad3Turn(int direction){
    // left motor
         set_motors(1, 48);
         // right motor
-        set_motors(3, 48);
+        set_motors(5, 48);
     hardware_exchange();
 }
 
+void forward(){
+    /**
+    * Simple function to set the robot to going forwards
+    */
+    set_motors(1, 37);
+    set_motors(5, 54);
+    hardware_exchange();
+}
+
+void quad3(){
+    /**
+     * Function to navigate the robot through quadrant 3.
+     * Should keep calling branching path detection.
+     * When it reaches a branching path it should prioritise turning left, then straight, then right.
+     * 
+     * 
+    */
+   // I SHOULD OF USED CONSTANTS IM SORRY
+   // Will require to not be on the change from the previous quadrant too work.
+   // Should probably just move forward a bit before this happens
+   // Keep going forward until fully past the previous quadrant change detector
+   forward();
+
+   while (quadrantChangeDetector())
+            ;
+   while (!quadrantChangeDetector()){
+    bool directions[3];
+    branchingPathDetection(directions);
+    if (directions[0]){
+        // Do stuff to turn left
+        // Keep going forward until the camera can no longer see left
+        while(directions[0]){
+            forward();
+            branchingPathDetection(directions);
+        }
+        quad3Turn(0);
+    } else if (directions[1]){
+        // go forwards
+        // Will need to center somehow
+        forward();
+    } else if (directions[2]){
+        // Do stuff to turn right
+        while(directions[2]){
+            forward();
+            branchingPathDetection(directions);
+        }
+        quad3Turn(1);
+    } else {
+        // When in doubt turn left
+        quad3Turn(0);
+    }
+    hardware_exchange();
+   }
+}
 
 int main() {
     int err;
     err = init(0);
-    stoph();
+
 
     // quad1
     open_gate();
     
     //move forward for an amount of time until reach quad2
-
     // quad2
     quad2();
     // quad 3
-
+    //quad3();
     // quad4
 
 
