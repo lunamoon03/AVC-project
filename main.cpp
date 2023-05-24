@@ -270,6 +270,15 @@ void quad3Turn(int direction){
     hardware_exchange();
 }
 
+void forward(){
+    /**
+    * Simple function to set the robot to going forwards
+    */
+    set_motors(1, 54);
+    set_motors(5, 37);
+    hardware_exchange();
+}
+
 void quad3(){
     /**
      * Function to navigate the robot through quadrant 3.
@@ -282,7 +291,7 @@ void quad3(){
    // Will require to not be on the change from the previous quadrant too work.
    // Should probably just move forward a bit before this happens
    // Keep going forward until fully past the previous quadrant change detector
-    forward();
+   forward();
    while (quadrantChangeDetector)
             ;
    while (!quadrantChangeDetector()){
@@ -313,15 +322,6 @@ void quad3(){
     }
     hardware_exchange();
    }
-}
-
-void forward(){
-    /**
-    * Simple function to set the robot to going forwards
-    */
-    set_motors(1, 54);
-    set_motors(5, 37);
-    hardware_exchange();
 }
 
 int main() {
