@@ -39,6 +39,17 @@ void move_forward(int time) {
     stop_motors();
 }
 
+// get vector of center line black pixels for quad2
+void get_center_line(int row, int cols, std::vector<int>& line) {
+    for (int col = 0; col < cols; col++) {
+        if (isBlack(row, col)) {
+            line.push_back(1);
+        } else {
+            line.push_back(0);
+        }
+    }
+}
+
 int calc_error(std::vector<int>& line, std::vector<int>& error_vec) {
     int error = 0;
     for (int i = 0; i < 320; i++) {
@@ -46,6 +57,16 @@ int calc_error(std::vector<int>& line, std::vector<int>& error_vec) {
     }
     return error;
 }
+
+// multiplies all values in one vector by their corresponding value in another vector
+void convert_line_to_error(std::vector<int>& line, std::vector<int>& error_vec) {
+    int j = -160;
+    for (unsigned int i = 0; i < line.size(); i++) {
+	line[i] *= error_vec[j];
+        j++;
+    }
+}
+
 
 int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
     int num_black_pixels = 0;
@@ -62,6 +83,22 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height
         }
     }
     return num_black_pixels;
+}
+
+// returns how far off the centre the black line is for quad2
+int get_quad2_error(int img_height, int img_width, std::vector<int>& error_vec) {
+    //dont necessarily want to be making a new error vector every time - may make parameter
+    std::vector<int> line;
+    get_center_line(img_height/2, img_width, line);
+    convert_line_to_error(line, error_vec);
+    int result = 0;
+    for (int i = 0; i < img_width; i++) {
+        result += line[i];
+        std::cout << line[i] << std::endl;
+        std::cout << result << std::endl;
+    }
+    return result;
+    //return std::accumulate(line.begin(), line.end(), 0);
 }
 
 int read_n_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
@@ -88,8 +125,6 @@ void make_error_vec(std::vector<int>& error_vec, int img_width) {
 }
 
 void quad2() {
-    int img_height = 240;
-    int img_width = 320;
     double tick = 0.01; // 10ms
     std::vector<int> error_vec;
     std::vector<int> line;
@@ -97,11 +132,15 @@ void quad2() {
     int num_red_pixels;
 
     int zero_speed = 48;
-    int left_base = zero_speed+6;
+    int left_motor = 1;
+    int left_base = zero_speed-11; // 37
     int left_speed;
-    int right_base = zero_speed-11;
+    int right_motor = 5;
+    int right_base = zero_speed+6; // 54
     int right_speed;
-    double kp = 0.25;
+    int img_width = 320;
+    int img_height = 240;
+    double kp = 0.1;
 
     make_error_vec(error_vec, img_width);
 
@@ -114,13 +153,21 @@ void quad2() {
 
         // normalise error
         if (num_red_pixels > 30) { //?? on the threshold value there
+            std::cout<<"Ending due to red"<<std::endl;
+            set_motors(left_motor, zero_speed);
+            set_motors(right_motor, zero_speed);
             break; // leave quad2 code
         } else if (num_black_pixels != 0) {
+            std::cout<<"black pixels"<<std::endl;
             error /= num_black_pixels;
+            std::cout<<"error: "<<error<<std::endl;
+            std::cout<<"adjustment: "<<error*kp<<std::endl;
             left_speed = left_base + (error * kp);
-            right_speed = right_base - (error * kp);
-            set_motors(1, left_speed);
-            set_motors(3, right_speed);
+            right_speed = right_base + (error * kp);
+            std::cout << "left speed: " << left_speed << std::endl;
+            std::cout << "right speed: " << right_speed << std::endl;
+            set_motors(left_motor, left_speed);
+            set_motors(right_motor, right_speed);
         } else {
             // move backwards
             left_speed = right_base;
@@ -205,30 +252,22 @@ void quad3Turn(int direction){
      * After this function is called the robot needs to be centered somehow
     */
    while(isBlack(120, 160)){
-    if (direction = 0){
-        // left motor
-        set_motors(1, 28);
-        // right motor
-        set_motors(3, 68);
+    if (direction == 0){
+        set_motors(1, 42);
+        set_motors(5, 42);
     } else {
-        // left
-        set_motors(1, 68);
-        // right
-        set_motors(3,28);
+        set_motors(1, 54);
+        set_motors(5, 54);
     }
     hardware_exchange();
    }
    while (!isBlack(120, 160)){
-    if (direction = 0){
-        // left motor
-        set_motors(1, 28);
-        // right motor
-        set_motors(3, 68);
+    if (direction == 0){
+        set_motors(1, 42);
+        set_motors(5, 42);
     } else {
-        // left
-        set_motors(1, 68);
-        // right
-        set_motors(3,28);
+        set_motors(1, 54);
+        set_motors(5, 54);
     }
         
     hardware_exchange();
@@ -237,7 +276,16 @@ void quad3Turn(int direction){
    // left motor
         set_motors(1, 48);
         // right motor
-        set_motors(3, 48);
+        set_motors(5, 48);
+    hardware_exchange();
+}
+
+void forward(){
+    /**
+    * Simple function to set the robot to going forwards
+    */
+    set_motors(1, 37);
+    set_motors(5, 54);
     hardware_exchange();
 }
 
@@ -249,8 +297,14 @@ void quad3(){
      * 
      * 
     */
+   // I SHOULD OF USED CONSTANTS IM SORRY
    // Will require to not be on the change from the previous quadrant too work.
    // Should probably just move forward a bit before this happens
+   // Keep going forward until fully past the previous quadrant change detector
+   forward();
+
+   while (quadrantChangeDetector())
+            ;
    while (!quadrantChangeDetector()){
     bool directions[3];
     branchingPathDetection(directions);
@@ -258,23 +312,18 @@ void quad3(){
         // Do stuff to turn left
         // Keep going forward until the camera can no longer see left
         while(directions[0]){
-            set_motors(1, 54);
-            set_motors(3, 54);
-            hardware_exchange();
+            forward();
             branchingPathDetection(directions);
         }
         quad3Turn(0);
     } else if (directions[1]){
         // go forwards
         // Will need to center somehow
-        set_motors(1, 58);
-        set_motors(3, 58);
+        forward();
     } else if (directions[2]){
         // Do stuff to turn right
         while(directions[2]){
-            set_motors(1, 54);
-            set_motors(3, 54);
-            hardware_exchange();
+            forward();
             branchingPathDetection(directions);
         }
         quad3Turn(1);
@@ -292,14 +341,13 @@ int main() {
 
 
     // quad1
-    //open_gate();
+    open_gate();
     
     //move forward for an amount of time until reach quad2
-
     // quad2
     quad2();
     // quad 3
-
+    //quad3();
     // quad4
 
 
