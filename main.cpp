@@ -132,9 +132,9 @@ void quad2() {
     int num_red_pixels;
 
     int zero_speed = 48;
-    int left_base = zero_speed-6;
+    int left_base = zero_speed+6;
     int left_speed;
-    int right_base = zero_speed+6;
+    int right_base = zero_speed-11;
     int right_speed;
     int img_width = 320;
     int img_height = 240;
@@ -327,10 +327,10 @@ void forward(){
 int main() {
     int err;
     err = init(0);
-    stoph();
+
 
     // quad1
-    open_gate();
+    //open_gate();
     
     //move forward for an amount of time until reach quad2
 
