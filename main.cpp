@@ -292,7 +292,8 @@ void quad3(){
    // Should probably just move forward a bit before this happens
    // Keep going forward until fully past the previous quadrant change detector
    forward();
-   while (quadrantChangeDetector)
+
+   while (quadrantChangeDetector())
             ;
    while (!quadrantChangeDetector()){
     bool directions[3];
