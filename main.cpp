@@ -281,6 +281,10 @@ void quad3(){
    // I SHOULD OF USED CONSTANTS IM SORRY
    // Will require to not be on the change from the previous quadrant too work.
    // Should probably just move forward a bit before this happens
+   // Keep going forward until fully past the previous quadrant change detector
+    forward();
+   while (quadrantChangeDetector)
+            ;
    while (!quadrantChangeDetector()){
     bool directions[3];
     branchingPathDetection(directions);
@@ -288,23 +292,18 @@ void quad3(){
         // Do stuff to turn left
         // Keep going forward until the camera can no longer see left
         while(directions[0]){
-            set_motors(1, 54);
-            set_motors(5, 42);
-            hardware_exchange();
+            forward();
             branchingPathDetection(directions);
         }
         quad3Turn(0);
     } else if (directions[1]){
         // go forwards
         // Will need to center somehow
-        set_motors(1, 54);
-        set_motors(5, 42);
+        forward();
     } else if (directions[2]){
         // Do stuff to turn right
         while(directions[2]){
-            set_motors(1, 54);
-            set_motors(5, 42);
-            hardware_exchange();
+            forward();
             branchingPathDetection(directions);
         }
         quad3Turn(1);
@@ -314,6 +313,15 @@ void quad3(){
     }
     hardware_exchange();
    }
+}
+
+void forward(){
+    /**
+    * Simple function to set the robot to going forwards
+    */
+    set_motors(1, 54);
+    set_motors(5, 42);
+    hardware_exchange();
 }
 
 int main() {
@@ -329,7 +337,7 @@ int main() {
     // quad2
     quad2();
     // quad 3
-
+    quad3();
     // quad4
 
 
