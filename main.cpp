@@ -12,13 +12,13 @@
 const int ZERO_SPEED = 48;
 const int FLAT_ANGLE = 30;
 const int VERTICAL_ANGLE = 65;
-const int LEFT_MOTOR = 1;
-const int RIGHT_MOTOR = 5;
+const int LEFT_MOTOR = 5;
+const int RIGHT_MOTOR = 1;
 const int CAMERA_SERVO = 3;
-const int LEFT_BASE = ZERO_SPEED - 11;
-const int LEFT_BACK = ZERO_SPEED + 11;
-const int RIGHT_BASE = ZERO_SPEED + 6;
-const int RIGHT_BACK = ZERO_SPEED - 6;
+const int LEFT_BASE = ZERO_SPEED + 6;
+const int LEFT_BACK = ZERO_SPEED - 6;
+const int RIGHT_BASE = ZERO_SPEED - 11;
+const int RIGHT_BACK = ZERO_SPEED + 11;
 const int CAMERA_WIDTH = 320;
 const int CAMERA_HEIGHT = 240;
 const double KP = 0.1;
@@ -227,6 +227,12 @@ void turn_right() {
     hardware_exchange();
 }
 
+void turn_left_around() {
+    set_motors(LEFT_MOTOR, LEFT_BACK);
+    set_motors(RIGHT_MOTOR, RIGHT_BASE);
+    hardware_exchange();
+}
+
 void turn_until_centred(std::vector<int>& line) {
     /**
      * Robot turns left until centred on line
@@ -234,11 +240,12 @@ void turn_until_centred(std::vector<int>& line) {
     int num_black_pixels;
     int num_red_pixels;
     double adjustment;
+
     do {
         take_picture();
         adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
         turn_left();
-    } while (adjustment > 1 || adjustment < -1);
+    } while (adjustment != 0);
     stop();
 }
 
@@ -265,10 +272,13 @@ void quad2() {
             } else if (num_black_pixels != 0) {
                 set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
                 set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
+                hardware_exchange();
             } else {
                 backward();
+                //turn_left_around();
             }
         } else {
+            std::cout<<"T-Junction detected"<<std::endl;
             turn_until_centred(line);
         }
         hardware_exchange();
@@ -361,7 +371,6 @@ void quad3(){
     }
     std::cout<<"past while loop"<<std::endl;
 }
-
 
 int main() {
     int err;
