@@ -144,8 +144,8 @@ void quad2() {
             // move backwards
             left_speed = right_base;
             right_speed = left_base;
-            set_motors(1, left_speed);
-            set_motors(3, right_speed);
+            set_motors(left_motor, left_speed);
+            set_motors(right_motor, right_speed);
         }
         hardware_exchange();
 
@@ -274,6 +274,10 @@ void quad3(){
     // Should probably just move forward a bit before this happens
     // Keep going forward until fully past the previous quadrant change detector
     forward();
+    std::vector<int> line;
+    int blackPixelCount;
+    // using an int for speed
+    int error;
 
     while (quadrantChangeDetector())
         ;
@@ -291,6 +295,29 @@ void quad3(){
         } else if (directions[1]){
             // go forwards
             // Will need to center somehow
+            // Centering somehow
+            line.clear();
+            take_picture();
+            //unused here
+            int redPixelCount = 0;
+            blackPixelCount = read_middle_line(line, redPixelCount, 240, 320);
+            error = calc_error(line)/blackPixelCount;
+            while (!(error > -5 && error < 5)){
+                blackPixelCount = read_middle_line(line, redPixelCount, 240, 320);
+                error = calc_error(line)/blackPixelCount;
+                if (error < 0){
+                    // Turn right
+                    set_motors(1, 54);
+                    set_motors(5, 54);
+                } else {
+                    // Turn left
+                    set_motors(1, 42);
+                    set_motors(5, 42);
+                }
+                hardware_exchange();
+            }
+
+
             forward();
         } else if (directions[2]){
             // Do stuff to turn right
