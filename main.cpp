@@ -66,6 +66,19 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
     return num_black_pixels;
 }
 
+double centre_on_line(std::vector<int>& line,
+                      int& num_black_pixels, int& num_red_pixels) {
+    take_picture();
+    line.clear();
+    num_black_pixels = 0;
+    num_red_pixels = 0;
+    num_black_pixels = read_middle_line(line, num_red_pixels);
+    auto error = (double)calc_error(line);
+    error /= num_black_pixels;
+    error *= KP;
+    return (calc_error(line) / num_black_pixels) * KP;
+}
+
 void quad2() {
     //std::vector<int> error_vec;
     std::vector<int> line;
@@ -74,6 +87,7 @@ void quad2() {
 
     int left_speed;
     int right_speed;
+    double adjustment;
 
     //make_error_vec(error_vec, IMG_WIDTH);
 
@@ -81,8 +95,7 @@ void quad2() {
         take_picture();
         // clear line so that new values may be entered
         line.clear();
-        num_black_pixels = read_middle_line(line, num_red_pixels);
-        int error = calc_error(line);
+        adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
 
         // normalise error
         if (num_red_pixels > 30) { //?? on the threshold value there
@@ -91,9 +104,8 @@ void quad2() {
             hardware_exchange();
             break; // leave quad2 code
         } else if (num_black_pixels != 0) {
-            error /= num_black_pixels;
-            left_speed = LEFT_BASE + (error * KP);
-            right_speed = RIGHT_BASE + (error * KP);
+            left_speed = LEFT_BASE + adjustment;
+            right_speed = RIGHT_BASE + adjustment;
             set_motors(LEFT_MOTOR, left_speed);
             set_motors(RIGHT_MOTOR, right_speed);
         } else {
@@ -302,12 +314,7 @@ void quad3(){
     std::cout<<"past while loop"<<std::endl;
 }
 
-void center_on_line() {
-    std::vector<int> line;
-    int num_black_pixels;
-    take_picture();
 
-}
 
 int main() {
     int err;
