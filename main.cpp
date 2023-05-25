@@ -77,6 +77,9 @@ double centre_on_line(std::vector<int>& line,
     num_black_pixels = 0;
     num_red_pixels = 0;
     num_black_pixels = read_middle_line(line, num_red_pixels);
+    if (num_black_pixels == 0) {
+        return 0;
+    }
     return (calc_error(line) / num_black_pixels) * KP;
 }
 
@@ -254,16 +257,19 @@ void quad2() {
         // clear line so that new values may be entered
         line.clear();
         adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
-
-        // normalise error
-        if (num_red_pixels > 30) { //?? on the threshold value there
-            stop();
-            break; // leave quad2 code
-        } else if (num_black_pixels != 0) {
-            set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
-            set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
+        if (num_black_pixels != CAMERA_WIDTH) {
+            // normalise error
+            if (num_red_pixels > 30) { //?? on the threshold value there
+                stop();
+                break; // leave quad2 code
+            } else if (num_black_pixels != 0) {
+                set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
+                set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
+            } else {
+                backward();
+            }
         } else {
-            backward();
+            turn_until_centred(line);
         }
         hardware_exchange();
 
@@ -357,21 +363,19 @@ void quad3(){
 }
 
 
-
 int main() {
     int err;
     err = init(0);
 
-
     // quad1
-    open_gate();
+    //open_gate();
 
     //move forward for an amount of time until reach quad2
     // quad2
     quad2();
 
     // quad 3
-    quad3();
+    //quad3testing();
     // quad4
 
 
