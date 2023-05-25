@@ -245,17 +245,19 @@ void turn_until_centred(std::vector<int>& line) {
         take_picture();
         adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
         turn_left();
-    } while (adjustment != 0);
+    } while (adjustment == 0);
     stop();
 }
 
-void quad2() {
+void lineFollower() {
     /**
      * Navigates quadrant 2
      */
     std::vector<int> line;
     int num_black_pixels;
     int num_red_pixels;
+    int back_count = 0;
+    int consecutive_back = 0;
 
     double adjustment;
 
@@ -264,22 +266,33 @@ void quad2() {
         // clear line so that new values may be entered
         line.clear();
         adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
-        if (num_black_pixels != CAMERA_WIDTH) {
+        if (num_black_pixels < (CAMERA_WIDTH - 75)) {
             // normalise error
             if (num_red_pixels > 30) { //?? on the threshold value there
                 stop();
-                break; // leave quad2 code
+                break; // leave lineFollower code
             } else if (num_black_pixels != 0) {
+                consecutive_back = 0;
                 set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
                 set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
                 hardware_exchange();
             } else {
-                backward();
-                //turn_left_around();
+                if (back_count < 20) {
+                    backward();
+                    back_count++;
+                    consecutive_back++;
+                } else if (consecutive_back > 10){
+                    turn_left_around();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    back_count = 0;
+                    consecutive_back = 0;
+                } else {
+                    turn_left_around();
+                }
             }
         } else {
-            std::cout<<"T-Junction detected"<<std::endl;
-            turn_until_centred(line);
+            turn_left();
+            //turn_until_centred(line);
         }
         hardware_exchange();
 
@@ -377,11 +390,15 @@ int main() {
     err = init(0);
 
     // quad1
-    //open_gate();
+    open_gate();
 
-    //move forward for an amount of time until reach quad2
-    // quad2
-    quad2();
+    //move forward for an amount of time until reach lineFollower
+    // lineFollower
+    lineFollower();
+    std::cout<<"Quad 2 to Quad 3 transition"<<std::endl;
+    forward();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    lineFollower();
 
     // quad 3
     //quad3testing();
