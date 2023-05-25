@@ -6,6 +6,8 @@
 #include <iterator>
 #include <algorithm>
 #include <numeric>
+#include <chrono>
+#include <thread>
 
 const int ZERO_SPEED = 48;
 const int FLAT_ANGLE = 30;
@@ -20,7 +22,7 @@ const int RIGHT_BACK = ZERO_SPEED - 6;
 const int CAMERA_WIDTH = 320;
 const int CAMERA_HEIGHT = 240;
 const double KP = 0.1;
-const double TICK = 0.01; // 10ms
+const double TICK = 10; // 10ms
 
 void open_gate() {
     std::cout<<"Opening Gate"<<std::endl<<std::endl;
@@ -75,9 +77,6 @@ double centre_on_line(std::vector<int>& line,
     num_black_pixels = 0;
     num_red_pixels = 0;
     num_black_pixels = read_middle_line(line, num_red_pixels);
-    auto error = (double)calc_error(line);
-    error /= num_black_pixels;
-    error *= KP;
     return (calc_error(line) / num_black_pixels) * KP;
 }
 
@@ -191,15 +190,59 @@ void forward(){
 
 void backward() {
     /**
-     * Simply function to set the robot to going backwards
+     * Simple function to set the robot to going backwards
      */
     set_motors(LEFT_MOTOR, LEFT_BACK);
     set_motors(RIGHT_MOTOR, RIGHT_BACK);
     hardware_exchange();
 }
 
+void stop() {
+    /**
+     * Simple function to stop the robot
+     */
+    set_motors(LEFT_MOTOR, ZERO_SPEED);
+    set_motors(RIGHT_MOTOR, ZERO_SPEED);
+    hardware_exchange();
+}
+
+void turn_left() {
+    /**
+     * Makes robot turn left
+     */
+    set_motors(LEFT_MOTOR, ZERO_SPEED);
+    set_motors(RIGHT_MOTOR, RIGHT_BASE);
+    hardware_exchange();
+}
+
+void turn_right() {
+    /**
+     * Makes robot turn right
+     */
+    set_motors(LEFT_MOTOR, LEFT_BASE);
+    set_motors(RIGHT_MOTOR, ZERO_SPEED);
+    hardware_exchange();
+}
+
+void turn_until_centred(std::vector<int>& line) {
+    /**
+     * Robot turns left until centred on line
+     */
+    int num_black_pixels;
+    int num_red_pixels;
+    double adjustment;
+    do {
+        take_picture();
+        adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
+        turn_left();
+    } while (adjustment > 1 || adjustment < -1);
+    stop();
+}
+
 void quad2() {
-    //std::vector<int> error_vec;
+    /**
+     * Navigates quadrant 2
+     */
     std::vector<int> line;
     int num_black_pixels;
     int num_red_pixels;
@@ -214,9 +257,7 @@ void quad2() {
 
         // normalise error
         if (num_red_pixels > 30) { //?? on the threshold value there
-            set_motors(LEFT_MOTOR, ZERO_SPEED);
-            set_motors(RIGHT_MOTOR, ZERO_SPEED);
-            hardware_exchange();
+            stop();
             break; // leave quad2 code
         } else if (num_black_pixels != 0) {
             set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
