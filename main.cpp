@@ -132,13 +132,15 @@ void quad2() {
     int num_red_pixels;
 
     int zero_speed = 48;
-    int left_base = zero_speed+6;
+    int left_motor = 1;
+    int left_base = zero_speed-11; // 37
     int left_speed;
-    int right_base = zero_speed-11;
+    int right_motor = 5;
+    int right_base = zero_speed+6; // 54
     int right_speed;
     int img_width = 320;
     int img_height = 240;
-    double kp = 0.25;
+    double kp = 0.1;
 
     make_error_vec(error_vec, img_width);
 
@@ -151,13 +153,16 @@ void quad2() {
 
         // normalise error
         if (num_red_pixels > 30) { //?? on the threshold value there
+            std::cout<<"Ending quad2 due to red"<<std::endl;
+            set_motors(left_motor, zero_speed);
+            set_motors(right_motor, zero_speed);
             break; // leave quad2 code
         } else if (num_black_pixels != 0) {
             error /= num_black_pixels;
             left_speed = left_base + (error * kp);
-            right_speed = right_base - (error * kp);
-            set_motors(1, left_speed);
-            set_motors(3, right_speed);
+            right_speed = right_base + (error * kp);
+            set_motors(left_motor, left_speed);
+            set_motors(right_motor, right_speed);
         } else {
             // move backwards
             left_speed = right_base;
@@ -274,8 +279,8 @@ void forward(){
     /**
     * Simple function to set the robot to going forwards
     */
-    set_motors(1, 54);
-    set_motors(5, 37);
+    set_motors(1, 37);
+    set_motors(5, 54);
     hardware_exchange();
 }
 
@@ -334,11 +339,10 @@ int main() {
     //open_gate();
     
     //move forward for an amount of time until reach quad2
-
     // quad2
     quad2();
     // quad 3
-    quad3();
+    //quad3();
     // quad4
 
 
