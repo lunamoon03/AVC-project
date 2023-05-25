@@ -160,6 +160,7 @@ bool quadrantChangeDetector() {
      * If there are enough red pixels it returns true
      * All other cases false
     */
+    take_picture();
     int count = 0;
     const int MIN_REQ_RED = 0;
     for (int row = 0; row < 240; row++){
@@ -282,6 +283,7 @@ void quad3(){
 
     while (quadrantChangeDetector())
         ;
+    std::cout<<"Past the quadrant change"<<std::endl;
     while (!quadrantChangeDetector()){
         bool directions[3];
         branchingPathDetection(directions);
