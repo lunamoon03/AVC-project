@@ -14,7 +14,9 @@ const int LEFT_MOTOR = 1;
 const int RIGHT_MOTOR = 5;
 const int CAMERA_SERVO = 3;
 const int LEFT_BASE = ZERO_SPEED - 11;
+const int LEFT_BACK = ZERO_SPEED + 11;
 const int RIGHT_BASE = ZERO_SPEED + 6;
+const int RIGHT_BACK = ZERO_SPEED - 6;
 const int CAMERA_WIDTH = 320;
 const int CAMERA_HEIGHT = 240;
 const double KP = 0.1;
@@ -77,47 +79,6 @@ double centre_on_line(std::vector<int>& line,
     error /= num_black_pixels;
     error *= KP;
     return (calc_error(line) / num_black_pixels) * KP;
-}
-
-void quad2() {
-    //std::vector<int> error_vec;
-    std::vector<int> line;
-    int num_black_pixels;
-    int num_red_pixels;
-
-    int left_speed;
-    int right_speed;
-    double adjustment;
-
-    //make_error_vec(error_vec, IMG_WIDTH);
-
-    while (true) {
-        take_picture();
-        // clear line so that new values may be entered
-        line.clear();
-        adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
-
-        // normalise error
-        if (num_red_pixels > 30) { //?? on the threshold value there
-            set_motors(LEFT_MOTOR, ZERO_SPEED);
-            set_motors(RIGHT_MOTOR, ZERO_SPEED);
-            hardware_exchange();
-            break; // leave quad2 code
-        } else if (num_black_pixels != 0) {
-            left_speed = LEFT_BASE + adjustment;
-            right_speed = RIGHT_BASE + adjustment;
-            set_motors(LEFT_MOTOR, left_speed);
-            set_motors(RIGHT_MOTOR, right_speed);
-        } else {
-            // move backwards
-            left_speed = RIGHT_BASE;
-            right_speed = LEFT_BASE;
-            set_motors(LEFT_MOTOR, left_speed);
-            set_motors(RIGHT_MOTOR, right_speed);
-        }
-        hardware_exchange();
-
-    }
 }
 
 
@@ -223,9 +184,49 @@ void forward(){
     /**
     * Simple function to set the robot to going forwards
     */
-    set_motors(1, 37);
-    set_motors(5, 54);
+    set_motors(LEFT_MOTOR, LEFT_BASE);
+    set_motors(RIGHT_MOTOR, RIGHT_BASE);
     hardware_exchange();
+}
+
+void backward() {
+    /**
+     * Simply function to set the robot to going backwards
+     */
+    set_motors(LEFT_MOTOR, LEFT_BACK);
+    set_motors(RIGHT_MOTOR, RIGHT_BACK);
+    hardware_exchange();
+}
+
+void quad2() {
+    //std::vector<int> error_vec;
+    std::vector<int> line;
+    int num_black_pixels;
+    int num_red_pixels;
+
+    double adjustment;
+
+    while (true) {
+        take_picture();
+        // clear line so that new values may be entered
+        line.clear();
+        adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
+
+        // normalise error
+        if (num_red_pixels > 30) { //?? on the threshold value there
+            set_motors(LEFT_MOTOR, ZERO_SPEED);
+            set_motors(RIGHT_MOTOR, ZERO_SPEED);
+            hardware_exchange();
+            break; // leave quad2 code
+        } else if (num_black_pixels != 0) {
+            set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
+            set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
+        } else {
+            backward();
+        }
+        hardware_exchange();
+
+    }
 }
 
 void quad3(){
