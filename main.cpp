@@ -25,31 +25,6 @@ void open_gate() {
     // done!
 }
 
-void stop_motors() {
-    set_motors(1, 48);
-    set_motors(1, 48);
-    hardware_exchange();
-}
-
-void move_forward(int time) {
-    set_motors(1, 31);
-    set_motors(3, 65);
-    hardware_exchange();
-    sleep(time);
-    stop_motors();
-}
-
-// get vector of center line black pixels for quad2
-void get_center_line(int row, int cols, std::vector<int>& line) {
-    for (int col = 0; col < cols; col++) {
-        if (isBlack(row, col)) {
-            line.push_back(1);
-        } else {
-            line.push_back(0);
-        }
-    }
-}
-
 int calc_error(std::vector<int>& line) {
     int error = 0;
     int j = -1 * (int)(line.size()/2);
@@ -76,29 +51,6 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height
         }
     }
     return num_black_pixels;
-}
-
-int read_n_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
-    int num_black_pixels = 0;
-    num_red_pixels = 0;
-    for (int i = 0; i < img_height; i++) {
-        if(isBlack(i, img_width/3)) {
-            line.push_back(1);
-            num_black_pixels++;
-        } else {
-            line.push_back(0);
-        }
-    }
-
-    return num_black_pixels;
-}
-
-void make_error_vec(std::vector<int>& error_vec, int img_width) {
-    int j = -(img_width/2);
-    for (int i = 0; i < img_width; i++) {
-        error_vec.push_back(j);
-        j++;
-    }
 }
 
 void quad2() {
@@ -280,8 +232,6 @@ void quad3(){
     int error;
     const int error_range= 5;
 
-    //while (!quadrantChangeDetector())
-        ;
     std::cout<<"Past the quadrant change"<<std::endl;
     sleep(1);
     while (!quadrantChangeDetector()){
@@ -355,7 +305,7 @@ int main() {
 
 
     // quad1
-    //open_gate();
+    open_gate();
 
     //move forward for an amount of time until reach quad2
     // quad2

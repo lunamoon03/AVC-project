@@ -5,4 +5,3 @@ topi.sh
 CMakeLists.txt
 cmake-build-debug
 cmake-build-rpi-run
-makefile

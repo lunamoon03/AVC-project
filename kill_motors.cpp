@@ -5,6 +5,6 @@ int main() {
     hardware_exchange();
     set_motors(1, 48);
     set_motors(5, 48);
-    set_motors(3, 35);
+    set_motors(3,30);
     hardware_exchange();
 }
