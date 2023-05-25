@@ -208,6 +208,7 @@ void branchingPathDetection(bool* directions){
     */
     int boundingBox[4];
     findBoundingBox(boundingBox);
+    std::cout<<"Leftmost: "<< boundingBox[0] <<"Rightmost: "<<boundingBox[1]<<"topMost: "<<boundingBox[2]<<"bottomMost"<<boundingBox[3]<<std::endl;
     if (boundingBox[0] < 5) directions[0] = true;
     if (boundingBox[1] > 315) directions[2] = true;
     if (boundingBox[2] < 5) directions[1] = true;
