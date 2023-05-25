@@ -7,6 +7,19 @@
 #include <algorithm>
 #include <numeric>
 
+const int ZERO_SPEED = 48;
+const int FLAT_ANGLE = 30;
+const int VERTICAL_ANGLE = 65;
+const int LEFT_MOTOR = 1;
+const int RIGHT_MOTOR = 5;
+const int CAMERA_SERVO = 3;
+const int LEFT_BASE = ZERO_SPEED - 11;
+const int RIGHT_BASE = ZERO_SPEED + 6;
+const int CAMERA_WIDTH = 320;
+const int CAMERA_HEIGHT = 240;
+const double KP = 0.1;
+const double TICK = 0.01; // 10ms
+
 void open_gate() {
     std::cout<<"Opening Gate"<<std::endl<<std::endl;
     char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
@@ -36,17 +49,17 @@ int calc_error(std::vector<int>& line) {
 }
 
 
-int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height, int img_width) {
+int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
     int num_black_pixels = 0;
     num_red_pixels = 0;
-    for (int i = 0; i < img_width; i++) {
-        if (isBlack(img_height/2, i)) {
+    for (int i = 0; i < CAMERA_WIDTH; i++) {
+        if (isBlack(CAMERA_HEIGHT/2, i)) {
             line.push_back(1);
             num_black_pixels++;
         } else {
             line.push_back(0);
         }
-        if (isRed(img_height/2, i)) {
+        if (isRed(CAMERA_HEIGHT/2, i)) {
             num_red_pixels++;
         }
     }
@@ -54,54 +67,44 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels, int img_height
 }
 
 void quad2() {
-    double tick = 0.01; // 10ms
     //std::vector<int> error_vec;
     std::vector<int> line;
     int num_black_pixels;
     int num_red_pixels;
 
-    int zero_speed = 48;
-    int left_motor = 1;
-    int left_base = zero_speed-11; // 37
     int left_speed;
-    int right_motor = 5;
-    int right_base = zero_speed+6; // 54
     int right_speed;
-    int img_width = 320;
-    int img_height = 240;
-    double kp = 0.1;
 
-    //make_error_vec(error_vec, img_width);
+    //make_error_vec(error_vec, IMG_WIDTH);
 
     while (true) {
         take_picture();
         // clear line so that new values may be entered
         line.clear();
-        num_black_pixels = read_middle_line(line, num_red_pixels, img_height, img_width);
+        num_black_pixels = read_middle_line(line, num_red_pixels);
         int error = calc_error(line);
 
         // normalise error
         if (num_red_pixels > 30) { //?? on the threshold value there
-            set_motors(left_motor, zero_speed);
-            set_motors(right_motor, zero_speed);
+            set_motors(LEFT_MOTOR, ZERO_SPEED);
+            set_motors(RIGHT_MOTOR, ZERO_SPEED);
             hardware_exchange();
             break; // leave quad2 code
         } else if (num_black_pixels != 0) {
             error /= num_black_pixels;
-            left_speed = left_base + (error * kp);
-            right_speed = right_base + (error * kp);
-            set_motors(left_motor, left_speed);
-            set_motors(right_motor, right_speed);
+            left_speed = LEFT_BASE + (error * KP);
+            right_speed = RIGHT_BASE + (error * KP);
+            set_motors(LEFT_MOTOR, left_speed);
+            set_motors(RIGHT_MOTOR, right_speed);
         } else {
             // move backwards
-            left_speed = right_base;
-            right_speed = left_base;
-            set_motors(left_motor, left_speed);
-            set_motors(right_motor, right_speed);
+            left_speed = RIGHT_BASE;
+            right_speed = LEFT_BASE;
+            set_motors(LEFT_MOTOR, left_speed);
+            set_motors(RIGHT_MOTOR, right_speed);
         }
         hardware_exchange();
 
-        sleep(tick);
     }
 }
 
@@ -261,10 +264,10 @@ void quad3(){
             take_picture();
             //unused here
             int redPixelCount = 0;
-            blackPixelCount = read_middle_line(line, redPixelCount, 240, 320);
+            blackPixelCount = read_middle_line(line, redPixelCount);
             error = calc_error(line)/blackPixelCount;
             while (!(error > -(error_range) && error < error_range)){
-                blackPixelCount = read_middle_line(line, redPixelCount, 240, 320);
+                blackPixelCount = read_middle_line(line, redPixelCount);
                 error = calc_error(line)/blackPixelCount;
                 if (error < 0){
                     // Turn right
@@ -297,6 +300,13 @@ void quad3(){
         hardware_exchange();
     }
     std::cout<<"past while loop"<<std::endl;
+}
+
+void center_on_line() {
+    std::vector<int> line;
+    int num_black_pixels;
+    take_picture();
+
 }
 
 int main() {
