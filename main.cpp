@@ -163,13 +163,11 @@ bool quadrantChangeDetector() {
     take_picture();
     int count = 0;
     const int MIN_REQ_RED = 0;
-    for (int row = 0; row < 240; row++){
-        for (int col = 0; col < 320; col++){
-            if (isRed(row, col)) count++;
-        }
+    for (int col = 0; col < 320; col++){
+        if (isRed(120, col)) count++;
     }
-    if (count >= MIN_REQ_RED) return true;
-    return false;
+    if (count <= MIN_REQ_RED) return false;
+    return true;
 }
 
 void findBoundingBox(int* boundingBox) {
@@ -281,9 +279,10 @@ void quad3(){
     int error;
     const int error_range= 5;
 
-    while (quadrantChangeDetector())
+    //while (!quadrantChangeDetector())
         ;
     std::cout<<"Past the quadrant change"<<std::endl;
+    sleep(1);
     while (!quadrantChangeDetector()){
         bool directions[3];
         branchingPathDetection(directions);
@@ -335,6 +334,7 @@ void quad3(){
         }
         hardware_exchange();
     }
+    std::cout<<"past while loop"<<std::endl;
 }
 
 int main() {
@@ -343,13 +343,14 @@ int main() {
 
 
     // quad1
-    open_gate();
+    //open_gate();
 
     //move forward for an amount of time until reach quad2
     // quad2
     quad2();
+
     // quad 3
-    //quad3();
+    quad3();
     // quad4
 
 
