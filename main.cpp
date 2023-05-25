@@ -167,8 +167,8 @@ void quad2() {
             // move backwards
             left_speed = right_base;
             right_speed = left_base;
-            set_motors(1, left_speed);
-            set_motors(3, right_speed);
+            set_motors(left_motor, left_speed);
+            set_motors(right_motor, right_speed);
         }
         hardware_exchange();
 
