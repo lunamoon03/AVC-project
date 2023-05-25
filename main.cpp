@@ -278,6 +278,7 @@ void quad3(){
     int blackPixelCount;
     // using an int for speed
     int error;
+    const int error_range= 5;
 
     while (quadrantChangeDetector())
         ;
@@ -302,7 +303,7 @@ void quad3(){
             int redPixelCount = 0;
             blackPixelCount = read_middle_line(line, redPixelCount, 240, 320);
             error = calc_error(line)/blackPixelCount;
-            while (!(error > -5 && error < 5)){
+            while (!(error > -(error_range) && error < error_range)){
                 blackPixelCount = read_middle_line(line, redPixelCount, 240, 320);
                 error = calc_error(line)/blackPixelCount;
                 if (error < 0){
