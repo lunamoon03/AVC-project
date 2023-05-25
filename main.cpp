@@ -286,15 +286,23 @@ void quad3(){
     while (!quadrantChangeDetector()){
         bool directions[3];
         branchingPathDetection(directions);
+        std::cout<<"Avaliable directions:";
+        if (directions[0]) {std::cout<<" left ";}
+        if (directions[1]) {std::cout<<" forward ";}
+        if (directions[2]) {std::cout<<" right ";}
+        std::cout<<std::endl;
         if (directions[0]){
+            std::cout<<"Going left"<<std::endl;
             // Do stuff to turn left
             // Keep going forward until the camera can no longer see left
             while(directions[0]){
                 forward();
                 branchingPathDetection(directions);
             }
+            std::cout<<"Initiating left turn"<<std::endl;
             quad3Turn(0);
         } else if (directions[1]){
+            std::cout<<"Going forwards"<<std::endl;
             // go forwards
             // Will need to center somehow
             // Centering somehow
@@ -322,14 +330,17 @@ void quad3(){
 
             forward();
         } else if (directions[2]){
+            std::cout<<"Going right"<<std::endl;
             // Do stuff to turn right
             while(directions[2]){
                 forward();
                 branchingPathDetection(directions);
             }
+            std::cout<<"Initiating right turn"<<std::endl;
             quad3Turn(1);
         } else {
             // When in doubt turn left
+            std::cout<<"Going left"<<std::endl;
             quad3Turn(0);
         }
         hardware_exchange();
