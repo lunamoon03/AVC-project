@@ -20,83 +20,13 @@ const int CAMERA_HEIGHT = 240;
 const double KP = 0.1;
 
 /**
- * Opens the gate
+ * Resets the motors to default state - stopped and flat
  */
-void open_gate() {
-    std::cout<<"Opening Gate"<<std::endl<<std::endl;
-    char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
-    int server_port = 1024;
-    char message [24] = {'P', 'l', 'e', 'a', 's', 'e', '\0'};
-    char password [24] = "";
-    // Connect to server
-    connect_to_server(server_address, server_port);
-    // Initialise contact with server
-    send_to_server(message);
-    // receive password from server
-    receive_from_server(password);
-    // send password back to server
-    send_to_server(password);
-    // done!
-}
-
-/**
- * Calculates how off-centre values in a vector of 1s and 0s are
- * @param line
- * @return
- */
-int calc_error(std::vector<int>& line) {
-    int error = 0;
-    int j = -1 * (int)(line.size()/2);
-    for (int i = 0; i < 320; i++) {
-        error += line[i] * j;
-        j++;
-    }
-    return error;
-}
-
-/**
- * Reads the middle line of the camera
- * Stores non-black pixels as 0, black pixels as 1
- * Also counts total number of black pixels and total number of red pixels
- * @param line
- * @param num_red_pixels
- * @return
- */
-int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
-    int num_black_pixels = 0;
-    num_red_pixels = 0;
-    for (int i = 0; i < CAMERA_WIDTH; i++) {
-        if (isBlack(CAMERA_HEIGHT/2, i)) {
-            line.push_back(1);
-            num_black_pixels++;
-        } else {
-            line.push_back(0);
-        }
-        if (isRed(CAMERA_HEIGHT/2, i)) {
-            num_red_pixels++;
-        }
-    }
-    return num_black_pixels;
-}
-
-/**
- * Reads middle line on camera and returns how much the servos must be adjusted to stay on a black line
- * @param line
- * @param num_black_pixels
- * @param num_red_pixels
- * @return
- */
-double centre_on_line(std::vector<int>& line,
-                      int& num_black_pixels, int& num_red_pixels) {
-    take_picture();
-    line.clear();
-    num_black_pixels = 0;
-    num_red_pixels = 0;
-    num_black_pixels = read_middle_line(line, num_red_pixels);
-    if (num_black_pixels == 0) {
-        return 0;
-    }
-    return (calc_error(line) / num_black_pixels) * KP;
+void reset_motors() {
+    set_motors(LEFT_MOTOR, ZERO_SPEED);
+    set_motors(RIGHT_MOTOR, ZERO_SPEED);
+    set_motors(CAMERA_SERVO, FLAT_ANGLE);
+    hardware_exchange();
 }
 
 /**
@@ -150,10 +80,90 @@ void turn_right() {
 /**
  * Robot turns left around the middle of the two motors
  */
-void turn_left_around() {
+void turn_left_pivot() {
     set_motors(LEFT_MOTOR, LEFT_BACK);
     set_motors(RIGHT_MOTOR, RIGHT_BASE);
     hardware_exchange();
+}
+
+/**
+ * Opens the gate
+ */
+void open_gate() {
+    std::cout<<"Opening Gate"<<std::endl<<std::endl;
+    char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
+    int server_port = 1024;
+    char message [24] = {'P', 'l', 'e', 'a', 's', 'e', '\0'};
+    char password [24] = "";
+    // Connect to server
+    connect_to_server(server_address, server_port);
+    // Initialise contact with server
+    send_to_server(message);
+    // receive password from server
+    receive_from_server(password);
+    // send password back to server
+    send_to_server(password);
+    // done!
+}
+
+/**
+ * Calculates how off-centre values in a vector of 1s and 0s are
+ * @param line
+ * @return
+ */
+int calculate_error(std::vector<int>& line) {
+    int error = 0;
+    int j = -1 * (int)(line.size()/2);
+    for (int i = 0; i < 320; i++) {
+        error += line[i] * j;
+        j++;
+    }
+    return error;
+}
+
+/**
+ * Reads the middle line of the camera
+ * Stores non-black pixels as 0, black pixels as 1
+ * Also counts total number of black pixels and total number of red pixels
+ * @param line
+ * @param num_red_pixels
+ * @return
+ */
+int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
+    int num_black_pixels = 0;
+    num_red_pixels = 0;
+    for (int i = 0; i < CAMERA_WIDTH; i++) {
+        if (isBlack(CAMERA_HEIGHT/2, i)) {
+            line.push_back(1);
+            num_black_pixels++;
+        } else {
+            line.push_back(0);
+        }
+        if (isRed(CAMERA_HEIGHT/2, i)) {
+            num_red_pixels++;
+        }
+    }
+    return num_black_pixels;
+}
+
+/**
+ * Reads middle line on camera and returns how much the servos must be adjusted to stay on a black line
+ * @param line
+ * @param num_black_pixels
+ * @param num_red_pixels
+ * @return
+ */
+double centre_on_line(std::vector<int>& line,
+                      int& num_black_pixels, int& num_red_pixels) {
+    take_picture();
+    line.clear();
+    num_black_pixels = 0;
+    num_red_pixels = 0;
+    num_black_pixels = read_middle_line(line, num_red_pixels);
+    if (num_black_pixels == 0) {
+        return 0;
+    }
+    return (calculate_error(line) / num_black_pixels) * KP;
 }
 
 /**
@@ -162,18 +172,14 @@ void turn_left_around() {
  * @param back_count
  * @param consecutive_back
  */
-void no_line(int& back_count, int& consecutive_back) {
-    if (back_count < 20) {
+void no_line(int& consecutive_back) {
+    if (consecutive_back < 10) {
         backward();
-        back_count++;
         consecutive_back++;
-    } else if (consecutive_back > 10) {
-        turn_left_around();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        back_count = 0;
-        consecutive_back = 0;
     } else {
-        turn_left_around();
+        turn_left_pivot();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        consecutive_back = 0;
     }
 }
 
@@ -182,11 +188,10 @@ void no_line(int& back_count, int& consecutive_back) {
  * Cabable of naviagting tight turns, right angle turns, and junctions.
  * Always turn left if at junction
  */
-void lineFollower() {
+void line_follower() {
     std::vector<int> line;
     int num_black_pixels;
     int num_red_pixels;
-    int back_count;
     int consecutive_back;
 
     double adjustment;
@@ -194,7 +199,6 @@ void lineFollower() {
         // initialise tracking variables
         num_black_pixels = 0;
         num_red_pixels = 0;
-        back_count = 0;
         consecutive_back = 0;
         while (true) {
             take_picture();
@@ -212,7 +216,7 @@ void lineFollower() {
                     set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
                     hardware_exchange();
                 } else {
-                    no_line(back_count, consecutive_back);
+                    no_line(consecutive_back);
                 }
             } else {
                 turn_left();
@@ -230,14 +234,20 @@ void lineFollower() {
     }
 }
 
-/**
- * Resets the motors to default state - stopped and flat
- */
-void reset_motors() {
-    set_motors(LEFT_MOTOR, ZERO_SPEED);
-    set_motors(RIGHT_MOTOR, ZERO_SPEED);
-    set_motors(CAMERA_SERVO, FLAT_ANGLE);
-    hardware_exchange();
+void cylinder_move() {
+    set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
+    // Turn on pivot while scanning for red. Stop when red is in the middle of the cameras view
+
+    // Move towards red using similar algorithm to line follower (keeping red centered)
+    // Stop once the number of red pixels is greater than a certain amount (probably 250-300)
+
+    // Repeat above (loop) for green and blue
+}
+
+void ball_move() {
+    // Turn on pivot while scanning for red as in cylinder move.
+    // Move towards red in same way.
+    // Once red is higher than threshold, keep moving forwards until red is below threshold (50?)
 }
 
 int main() {
@@ -248,8 +258,8 @@ int main() {
     // quad1
     open_gate();
 
-    // Follow line through from quad2 to quad3
-    lineFollower();
+    // Follow line through from quad2 to end of quad3
+    line_follower();
 
     // quad4
 

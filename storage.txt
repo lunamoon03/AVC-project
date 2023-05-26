@@ -148,7 +148,7 @@ void quad3(){
             error = calc_error(line)/blackPixelCount;
             while (!(error > -(error_range) && error < error_range)){
                 blackPixelCount = read_middle_line(line, redPixelCount);
-                error = calc_error(line)/blackPixelCount;
+                error = calculate_error(line)/blackPixelCount;
                 if (error < 0){
                     // Turn right
                     set_motors(1, 54);
