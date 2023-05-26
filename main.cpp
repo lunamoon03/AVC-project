@@ -19,6 +19,9 @@ const int CAMERA_WIDTH = 320;
 const int CAMERA_HEIGHT = 240;
 const double KP = 0.1;
 
+/**
+ * Opens the gate
+ */
 void open_gate() {
     std::cout<<"Opening Gate"<<std::endl<<std::endl;
     char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
@@ -30,13 +33,17 @@ void open_gate() {
     // Initialise contact with server
     send_to_server(message);
     // receive password from server
-    // pass password by reference
     receive_from_server(password);
     // send password back to server
     send_to_server(password);
     // done!
 }
 
+/**
+ * Calculates how off-centre values in a vector of 1s and 0s are
+ * @param line
+ * @return
+ */
 int calc_error(std::vector<int>& line) {
     int error = 0;
     int j = -1 * (int)(line.size()/2);
@@ -47,7 +54,14 @@ int calc_error(std::vector<int>& line) {
     return error;
 }
 
-
+/**
+ * Reads the middle line of the camera
+ * Stores non-black pixels as 0, black pixels as 1
+ * Also counts total number of black pixels and total number of red pixels
+ * @param line
+ * @param num_red_pixels
+ * @return
+ */
 int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
     int num_black_pixels = 0;
     num_red_pixels = 0;
@@ -65,6 +79,13 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
     return num_black_pixels;
 }
 
+/**
+ * Reads middle line on camera and returns how much the servos must be adjusted to stay on a black line
+ * @param line
+ * @param num_black_pixels
+ * @param num_red_pixels
+ * @return
+ */
 double centre_on_line(std::vector<int>& line,
                       int& num_black_pixels, int& num_red_pixels) {
     take_picture();
@@ -78,42 +99,45 @@ double centre_on_line(std::vector<int>& line,
     return (calc_error(line) / num_black_pixels) * KP;
 }
 
+/**
+ * Sets wheels to moving forward
+ */
 void forward(){
-    /**
-    * Simple function to set the robot to going forwards
-    */
     set_motors(LEFT_MOTOR, LEFT_BASE);
     set_motors(RIGHT_MOTOR, RIGHT_BASE);
     hardware_exchange();
 }
 
+/**
+ * Sets wheels to moving backwards
+ */
 void backward() {
-    /**
-     * Simple function to set the robot to going backwards
-     */
     set_motors(LEFT_MOTOR, LEFT_BACK);
     set_motors(RIGHT_MOTOR, RIGHT_BACK);
     hardware_exchange();
 }
 
+/**
+ * Stops wheels
+ */
 void stop() {
-    /**
-     * Simple function to stop the robot
-     */
     set_motors(LEFT_MOTOR, ZERO_SPEED);
     set_motors(RIGHT_MOTOR, ZERO_SPEED);
     hardware_exchange();
 }
 
+/**
+ * Robot turns left around left wheel
+ */
 void turn_left() {
-    /**
-     * Makes robot turn left
-     */
     set_motors(LEFT_MOTOR, ZERO_SPEED);
     set_motors(RIGHT_MOTOR, RIGHT_BASE);
     hardware_exchange();
 }
 
+/**
+ * Robot turns right around right wheel
+ */
 void turn_right() {
     /**
      * Makes robot turn right
@@ -123,52 +147,72 @@ void turn_right() {
     hardware_exchange();
 }
 
+/**
+ * Robot turns left around the middle of the two motors
+ */
 void turn_left_around() {
     set_motors(LEFT_MOTOR, LEFT_BACK);
     set_motors(RIGHT_MOTOR, RIGHT_BASE);
     hardware_exchange();
 }
 
+/**
+ * Evaluates the situation of there is no line detected
+ * Either moved backwards or turns around if the robot has turned around too much
+ * @param back_count
+ * @param consecutive_back
+ */
+void no_line(int& back_count, int& consecutive_back) {
+    if (back_count < 20) {
+        backward();
+        back_count++;
+        consecutive_back++;
+    } else if (consecutive_back > 10) {
+        turn_left_around();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        back_count = 0;
+        consecutive_back = 0;
+    } else {
+        turn_left_around();
+    }
+}
+
+/**
+ * Robot follows the line
+ * Cabable of naviagting tight turns, right angle turns, and junctions.
+ * Always turn left if at junction
+ */
 void lineFollower() {
-    /**
-     * Navigates quadrants 2 & 3
-     */
     std::vector<int> line;
     int num_black_pixels;
     int num_red_pixels;
-    int back_count = 0;
-    int consecutive_back = 0;
+    int back_count;
+    int consecutive_back;
 
     double adjustment;
     for (int i = 0; i < 2; i++) {
+        // initialise tracking variables
+        num_black_pixels = 0;
+        num_red_pixels = 0;
+        back_count = 0;
+        consecutive_back = 0;
         while (true) {
             take_picture();
             // clear line so that new values may be entered
             line.clear();
+            // find adjustment value, as well as number of black and red pixels
             adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
             if (num_black_pixels < (CAMERA_WIDTH - 75)) {
-                // normalise error
-                if (num_red_pixels > 30) { //?? on the threshold value there
+                if (num_red_pixels > 30) { // Red is used in quad2 & 3 as divider between quadrants
                     stop();
-                    break; // leave lineFollower code
-                } else if (num_black_pixels != 0) {
+                    break; // leave quadrant
+                } else if (num_black_pixels != 0) { // Navigates the line if there is one
                     consecutive_back = 0;
                     set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
                     set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
                     hardware_exchange();
                 } else {
-                    if (back_count < 20) {
-                        backward();
-                        back_count++;
-                        consecutive_back++;
-                    } else if (consecutive_back > 10) {
-                        turn_left_around();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                        back_count = 0;
-                        consecutive_back = 0;
-                    } else {
-                        turn_left_around();
-                    }
+                    no_line(back_count, consecutive_back);
                 }
             } else {
                 turn_left();
@@ -179,12 +223,16 @@ void lineFollower() {
         }
         if (i == 0) {
             std::cout << "Quad 2 to Quad 3 transition" << std::endl;
+            // Moves the robot forward for 1 second to avoid getting stuck on red square
             forward();
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
     }
 }
 
+/**
+ * Resets the motors to default state - stopped and flat
+ */
 void reset_motors() {
     set_motors(LEFT_MOTOR, ZERO_SPEED);
     set_motors(RIGHT_MOTOR, ZERO_SPEED);
