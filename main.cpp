@@ -1,11 +1,7 @@
 #include <iostream>
 #include "E101.h"
 #include "isColour.h"
-#include <unistd.h>
 #include <vector>
-#include <iterator>
-#include <algorithm>
-#include <numeric>
 #include <chrono>
 #include <thread>
 
@@ -22,7 +18,6 @@ const int RIGHT_BACK = ZERO_SPEED + 11;
 const int CAMERA_WIDTH = 320;
 const int CAMERA_HEIGHT = 240;
 const double KP = 0.1;
-const double TICK = 10; // 10ms
 
 void open_gate() {
     std::cout<<"Opening Gate"<<std::endl<<std::endl;
@@ -34,7 +29,7 @@ void open_gate() {
     connect_to_server(server_address, server_port);
     // Initialise contact with server
     send_to_server(message);
-    // recieve password from server
+    // receive password from server
     // pass password by reference
     receive_from_server(password);
     // send password back to server
@@ -190,9 +185,17 @@ void lineFollower() {
     }
 }
 
+void reset_motors() {
+    set_motors(LEFT_MOTOR, ZERO_SPEED);
+    set_motors(RIGHT_MOTOR, ZERO_SPEED);
+    set_motors(CAMERA_SERVO, FLAT_ANGLE);
+    hardware_exchange();
+}
+
 int main() {
     int err;
     err = init(0);
+    reset_motors();
 
     // quad1
     open_gate();
