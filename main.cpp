@@ -83,105 +83,6 @@ double centre_on_line(std::vector<int>& line,
     return (calc_error(line) / num_black_pixels) * KP;
 }
 
-
-bool quadrantChangeDetector() {
-    /**
-     * This function counts the number of red pixels
-     * If there are enough red pixels it returns true
-     * All other cases false
-    */
-    take_picture();
-    int count = 0;
-    const int MIN_REQ_RED = 0;
-    for (int col = 0; col < 320; col++){
-        if (isRed(120, col)) count++;
-    }
-    if (count <= MIN_REQ_RED) return false;
-    return true;
-}
-
-void findBoundingBox(int* boundingBox) {
-    /**
-     * Takes a Reference (Might need to be a pointer) to an array of ints. And changes the values to represent the bounding box of black lines
-     * The array should have four elements in it.
-    */
-    int leftMostBlack = 400;
-    int rightMostBlack = -100;
-    int topMostBlack = 400;
-    int bottomMostBlack = 0;
-    take_picture();
-    for (int row = 0; row <240; row++){
-        for (int col = 0; col < 320; col++){
-            if (isBlack(row, col)) {
-                // Update the bounding box based on the location of the pixels
-                if (leftMostBlack > col) leftMostBlack = col;
-                if (rightMostBlack < col) rightMostBlack = col;
-                if (topMostBlack > row) topMostBlack = row;
-                if (bottomMostBlack < row) bottomMostBlack = row;
-            }
-        }
-    }
-    // Update the array with the bounding box
-    boundingBox[0] = leftMostBlack;
-    boundingBox[1] = rightMostBlack;
-    boundingBox[2] = topMostBlack;
-    boundingBox[3] = bottomMostBlack;
-}
-
-void branchingPathDetection(bool* directions){
-    /**
-     * Takes a reference to an array of strings.
-     * Gets the bounding box and determines what directions can be moved in
-     * Then updates the array of strings with that.
-     * This function expects the robot to be aligned with the path
-     * Directions 0 is left, 1 is forward, 2 is right
-    */
-    int boundingBox[4];
-    findBoundingBox(boundingBox);
-    std::cout<<"Leftmost: "<< boundingBox[0] <<"Rightmost: "<<boundingBox[1]<<"topMost: "<<boundingBox[2]<<"bottomMost"<<boundingBox[3]<<std::endl;
-    if (boundingBox[0] < 5) directions[0] = true;
-    if (boundingBox[1] > 315) directions[2] = true;
-    if (boundingBox[2] < 5) directions[1] = true;
-
-}
-
-void quad3Turn(int direction){
-    /**
-     * This function handles turning in quadrant 3.  
-     * It takes the direction to turn in as an int where 0 is left and 1 is right.
-     * Then it turns in that direction until a white pixel is in the center of the screen.
-     * Then it stops turning when a black pixel is detected.
-     * After this function is called the robot needs to be centered somehow
-    */
-    while(isBlack(120, 160)){
-        if (direction == 0){
-            set_motors(1, 42);
-            set_motors(5, 42);
-        } else {
-            set_motors(1, 54);
-            set_motors(5, 54);
-        }
-        hardware_exchange();
-    }
-    while (!isBlack(120, 160)){
-        if (direction == 0){
-            set_motors(1, 42);
-            set_motors(5, 42);
-        } else {
-            set_motors(1, 54);
-            set_motors(5, 54);
-        }
-
-        hardware_exchange();
-    }
-    // Stop movement
-    // left motor
-    set_motors(1, 48);
-    // right motor
-    set_motors(5, 48);
-    hardware_exchange();
-}
-
 void forward(){
     /**
     * Simple function to set the robot to going forwards
@@ -233,25 +134,9 @@ void turn_left_around() {
     hardware_exchange();
 }
 
-void turn_until_centred(std::vector<int>& line) {
-    /**
-     * Robot turns left until centred on line
-     */
-    int num_black_pixels;
-    int num_red_pixels;
-    double adjustment;
-
-    do {
-        take_picture();
-        adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
-        turn_left();
-    } while (adjustment == 0);
-    stop();
-}
-
 void lineFollower() {
     /**
-     * Navigates quadrant 2
+     * Navigates quadrants 2 & 3
      */
     std::vector<int> line;
     int num_black_pixels;
@@ -260,129 +145,49 @@ void lineFollower() {
     int consecutive_back = 0;
 
     double adjustment;
-
-    while (true) {
-        take_picture();
-        // clear line so that new values may be entered
-        line.clear();
-        adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
-        if (num_black_pixels < (CAMERA_WIDTH - 75)) {
-            // normalise error
-            if (num_red_pixels > 30) { //?? on the threshold value there
-                stop();
-                break; // leave lineFollower code
-            } else if (num_black_pixels != 0) {
-                consecutive_back = 0;
-                set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
-                set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
-                hardware_exchange();
-            } else {
-                if (back_count < 20) {
-                    backward();
-                    back_count++;
-                    consecutive_back++;
-                } else if (consecutive_back > 10){
-                    turn_left_around();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                    back_count = 0;
-                    consecutive_back = 0;
-                } else {
-                    turn_left_around();
-                }
-            }
-        } else {
-            turn_left();
-            //turn_until_centred(line);
-        }
-        hardware_exchange();
-
-    }
-}
-
-void quad3(){
-    /**
-     * Function to navigate the robot through quadrant 3.
-     * Should keep calling branching path detection.
-     * When it reaches a branching path it should prioritise turning left, then straight, then right.
-     * 
-     * 
-    */
-    // I SHOULD OF USED CONSTANTS IM SORRY
-    // Will require to not be on the change from the previous quadrant too work.
-    // Should probably just move forward a bit before this happens
-    // Keep going forward until fully past the previous quadrant change detector
-    forward();
-    std::vector<int> line;
-    int blackPixelCount;
-    // using an int for speed
-    int error;
-    const int error_range= 5;
-
-    std::cout<<"Past the quadrant change"<<std::endl;
-    sleep(1);
-    while (!quadrantChangeDetector()){
-        bool directions[3];
-        branchingPathDetection(directions);
-        std::cout<<"Avaliable directions:";
-        if (directions[0]) {std::cout<<" left ";}
-        if (directions[1]) {std::cout<<" forward ";}
-        if (directions[2]) {std::cout<<" right ";}
-        std::cout<<std::endl;
-        if (directions[0]){
-            std::cout<<"Going left"<<std::endl;
-            // Do stuff to turn left
-            // Keep going forward until the camera can no longer see left
-            while(directions[0]){
-                forward();
-                branchingPathDetection(directions);
-            }
-            std::cout<<"Initiating left turn"<<std::endl;
-            quad3Turn(0);
-        } else if (directions[1]){
-            std::cout<<"Going forwards"<<std::endl;
-            // go forwards
-            // Will need to center somehow
-            // Centering somehow
-            line.clear();
+    for (int i = 0; i < 2; i++) {
+        while (true) {
             take_picture();
-            //unused here
-            int redPixelCount = 0;
-            blackPixelCount = read_middle_line(line, redPixelCount);
-            error = calc_error(line)/blackPixelCount;
-            while (!(error > -(error_range) && error < error_range)){
-                blackPixelCount = read_middle_line(line, redPixelCount);
-                error = calc_error(line)/blackPixelCount;
-                if (error < 0){
-                    // Turn right
-                    set_motors(1, 54);
-                    set_motors(5, 54);
+            // clear line so that new values may be entered
+            line.clear();
+            adjustment = centre_on_line(line, num_black_pixels, num_red_pixels);
+            if (num_black_pixels < (CAMERA_WIDTH - 75)) {
+                // normalise error
+                if (num_red_pixels > 30) { //?? on the threshold value there
+                    stop();
+                    break; // leave lineFollower code
+                } else if (num_black_pixels != 0) {
+                    consecutive_back = 0;
+                    set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
+                    set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
+                    hardware_exchange();
                 } else {
-                    // Turn left
-                    set_motors(1, 42);
-                    set_motors(5, 42);
+                    if (back_count < 20) {
+                        backward();
+                        back_count++;
+                        consecutive_back++;
+                    } else if (consecutive_back > 10) {
+                        turn_left_around();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                        back_count = 0;
+                        consecutive_back = 0;
+                    } else {
+                        turn_left_around();
+                    }
                 }
-                hardware_exchange();
+            } else {
+                turn_left();
+                //turn_until_centred(line);
             }
+            hardware_exchange();
 
-
-            forward();
-        } else if (directions[2]){
-            std::cout<<"Going right"<<std::endl;
-            // Do stuff to turn right
-            while(directions[2]){
-                forward();
-                branchingPathDetection(directions);
-            }
-            std::cout<<"Initiating right turn"<<std::endl;
-            quad3Turn(1);
-        } else {
-            // When in doubt turn left
-            std::cout<<"Going left"<<std::endl;
-            quad3Turn(0);
         }
-        hardware_exchange();
+        if (i == 0) {
+            std::cout << "Quad 2 to Quad 3 transition" << std::endl;
+            forward();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
     }
-    std::cout<<"past while loop"<<std::endl;
 }
 
 int main() {
@@ -392,16 +197,9 @@ int main() {
     // quad1
     open_gate();
 
-    //move forward for an amount of time until reach lineFollower
-    // lineFollower
-    lineFollower();
-    std::cout<<"Quad 2 to Quad 3 transition"<<std::endl;
-    forward();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // Follow line through from quad2 to quad3
     lineFollower();
 
-    // quad 3
-    //quad3testing();
     // quad4
 
 
