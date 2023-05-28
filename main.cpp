@@ -86,6 +86,12 @@ void turn_left_pivot() {
     hardware_exchange();
 }
 
+void turn_right_pivot() {
+    set_motors(LEFT_MOTOR, LEFT_BASE);
+    set_motors(RIGHT_MOTOR, RIGHT_BACK);
+    hardware_exchange();
+}
+
 /**
  * Opens the gate
  */
