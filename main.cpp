@@ -263,15 +263,15 @@ double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int colo
     return (calculate_error(line) / num_colored_pixels) * KP;
 }
 
-void cylinder_move() {
+void color_move() {
     set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
     std::vector<int> line;
     double adjustment;
     int num_colored_pixels;
     int color;
     // Turn on pivot while scanning for red. Stop when red is in the middle of the cameras view
-    for (int i = 0; i < 3; i++) {
-        if (i == 0) color = RED;
+    for (int i = 0; i < 4; i++) {
+        if (i == 0 || i == 3) color = RED;
         else if (i == 1) color = GREEN;
         else if (i == 2) color = BLUE;
         while (true) {
@@ -280,7 +280,10 @@ void cylinder_move() {
             num_colored_pixels = 0;
             adjustment = centre_on_color(line, num_colored_pixels, color);
             if (num_colored_pixels > 100) {
-                break;
+                if (i != 3) break;
+                do {
+                    forward();
+                } while (num_colored_pixels > 50);
             } else if (num_colored_pixels != 0) {
                 set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
                 set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
@@ -295,12 +298,9 @@ void cylinder_move() {
 
     // Repeat above (loop) for green and blue
 }
-
-void ball_move() {
     // Turn on pivot while scanning for red as in cylinder move.
     // Move towards red in same way.
     // Once red is higher than threshold, keep moving forwards until red is below threshold (50?)
-}
 
 int main() {
     int err;
