@@ -17,6 +17,9 @@ const int RIGHT_BASE = ZERO_SPEED - 11;
 const int RIGHT_BACK = ZERO_SPEED + 11;
 const int CAMERA_WIDTH = 320;
 const int CAMERA_HEIGHT = 240;
+const int RED = 0;
+const int GREEN = 1;
+const int BLUE = 2;
 const double KP = 0.1;
 
 /**
@@ -240,8 +243,29 @@ void line_follower() {
     }
 }
 
+double center_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
+    num_colored_pixels = 0;
+    for (int i = 0; i < CAMERA_WIDTH; i++ ) {
+        if (color == RED && isRed(CAMERA_HEIGHT/2, i)) {
+            line.push_back(1);
+            num_colored_pixels++;
+        } else if (color == GREEN && isGreen(CAMERA_HEIGHT/2, i)) {
+            line.push_back(1);
+            num_colored_pixels++;
+        } else if (color == BLUE && isBlue(CAMERA_HEIGHT/2, i)) {
+            line.push_back(1);
+            num_colored_pixels++;
+        } else {
+            line.push_back(0);
+        }
+    }
+    if (num_colored_pixels == 0) return 0;
+    return (calculate_error(line) / num_colored_pixels) * KP;
+}
+
 void cylinder_move() {
     set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
+    std::vector<int> line;
     // Turn on pivot while scanning for red. Stop when red is in the middle of the cameras view
 
     // Move towards red using similar algorithm to line follower (keeping red centered)
