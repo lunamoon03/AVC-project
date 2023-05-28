@@ -243,7 +243,7 @@ void line_follower() {
     }
 }
 
-double center_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
+double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
     num_colored_pixels = 0;
     for (int i = 0; i < CAMERA_WIDTH; i++ ) {
         if (color == RED && isRed(CAMERA_HEIGHT/2, i)) {
@@ -266,8 +266,30 @@ double center_on_color(std::vector<int>& line, int& num_colored_pixels, int colo
 void cylinder_move() {
     set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
     std::vector<int> line;
+    double adjustment;
+    int num_colored_pixels;
+    int color;
     // Turn on pivot while scanning for red. Stop when red is in the middle of the cameras view
-
+    for (int i = 0; i < 3; i++) {
+        if (i == 0) color = RED;
+        else if (i == 1) color = GREEN;
+        else if (i == 2) color = BLUE;
+        while (true) {
+            take_picture();
+            line.clear();
+            num_colored_pixels = 0;
+            adjustment = centre_on_color(line, num_colored_pixels, color);
+            if (num_colored_pixels > 100) {
+                break;
+            } else if (num_colored_pixels != 0) {
+                set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
+                set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
+                hardware_exchange();
+            } else {
+                turn_right_pivot();
+            }
+        }
+    }
     // Move towards red using similar algorithm to line follower (keeping red centered)
     // Stop once the number of red pixels is greater than a certain amount (probably 250-300)
 
