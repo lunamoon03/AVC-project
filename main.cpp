@@ -243,16 +243,19 @@ void line_follower() {
     }
 }
 
+/**
+ * Returns the adjustment required to centre the robot to a coloured object (such as a cylinder)
+ * @param line Middle line of image to scan
+ * @param num_colored_pixels Number of coloured pixels that were scanned
+ * @param color Colour to scan for
+ * @return
+ */
 double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
     num_colored_pixels = 0;
     for (int i = 0; i < CAMERA_WIDTH; i++ ) {
-        if (color == RED && isRed(CAMERA_HEIGHT/2, i)) {
-            line.push_back(1);
-            num_colored_pixels++;
-        } else if (color == GREEN && isGreen(CAMERA_HEIGHT/2, i)) {
-            line.push_back(1);
-            num_colored_pixels++;
-        } else if (color == BLUE && isBlue(CAMERA_HEIGHT/2, i)) {
+        if ((color == RED && isRed(CAMERA_HEIGHT/2, i)) ||
+            (color == GREEN && isGreen(CAMERA_HEIGHT/2, i)) ||
+            (color == BLUE && isBlue(CAMERA_HEIGHT/2, i))) {
             line.push_back(1);
             num_colored_pixels++;
         } else {
@@ -263,6 +266,9 @@ double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int colo
     return (calculate_error(line) / num_colored_pixels) * KP;
 }
 
+/**
+ * Moves the robot in accordance to the coloured cylinder section of the course
+ */
 void color_move() {
     set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
     std::vector<int> line;
@@ -279,11 +285,11 @@ void color_move() {
             line.clear();
             num_colored_pixels = 0;
             adjustment = centre_on_color(line, num_colored_pixels, color);
-            if (num_colored_pixels > 100) {
+            if (num_colored_pixels > 150) {
                 if (i != 3) break;
                 do {
                     forward();
-                } while (num_colored_pixels > 50);
+                } while (num_colored_pixels > 5);
             } else if (num_colored_pixels != 0) {
                 set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
                 set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
@@ -314,7 +320,7 @@ int main() {
     line_follower();
 
     // quad4
-
+    color_move();
 
     return err;
 }
