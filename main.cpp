@@ -72,9 +72,6 @@ void turn_left() {
  * Robot turns right around right wheel
  */
 void turn_right() {
-    /**
-     * Makes robot turn right
-     */
     set_motors(LEFT_MOTOR, LEFT_BASE);
     set_motors(RIGHT_MOTOR, ZERO_SPEED);
     hardware_exchange();
@@ -89,6 +86,9 @@ void turn_left_pivot() {
     hardware_exchange();
 }
 
+/**
+ * Makes Robot turn right around the middle of the two motors
+ */
 void turn_right_pivot() {
     set_motors(LEFT_MOTOR, LEFT_BASE);
     set_motors(RIGHT_MOTOR, RIGHT_BACK);
@@ -120,8 +120,8 @@ void open_gate() {
  * @param line
  * @return
  */
-int calculate_error(std::vector<int>& line) {
-    int error = 0;
+double calculate_error(std::vector<double>& line) {
+    double error = 0;
     int j = -1 * (int)(line.size()/2);
     for (int i = 0; i < 320; i++) {
         error += line[i] * j;
@@ -138,7 +138,7 @@ int calculate_error(std::vector<int>& line) {
  * @param num_red_pixels
  * @return
  */
-int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
+int read_middle_line(std::vector<double>& line, int& num_red_pixels) {
     int num_black_pixels = 0;
     num_red_pixels = 0;
     for (int i = 0; i < CAMERA_WIDTH; i++) {
@@ -162,7 +162,7 @@ int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
  * @param num_red_pixels
  * @return
  */
-double centre_on_line(std::vector<int>& line,
+double centre_on_line(std::vector<double>& line,
                       int& num_black_pixels, int& num_red_pixels) {
     take_picture();
     line.clear();
@@ -198,7 +198,7 @@ void no_line(int& consecutive_back) {
  * Always turn left if at junction
  */
 void line_follower() {
-    std::vector<int> line;
+    std::vector<double> line;
     int num_black_pixels;
     int num_red_pixels;
     int consecutive_back;
@@ -250,7 +250,7 @@ void line_follower() {
  * @param color Colour to scan for
  * @return
  */
-double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
+double centre_on_color(std::vector<double>& line, int& num_colored_pixels, int color) {
     num_colored_pixels = 0;
     for (int i = 0; i < CAMERA_WIDTH; i++ ) {
         if ((color == RED && isRed(CAMERA_HEIGHT/2, i)) ||
@@ -271,7 +271,7 @@ double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int colo
  */
 void color_move() {
     set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
-    std::vector<int> line;
+    std::vector<double> line;
     double adjustment;
     int num_colored_pixels;
     int color;
