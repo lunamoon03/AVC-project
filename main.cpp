@@ -100,7 +100,7 @@ void turn_right_pivot() {
  */
 void open_gate() {
     std::cout<<"Opening Gate"<<std::endl<<std::endl;
-    char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3', '.', '9', '1', '\0'};
+    char server_address [15] = {'1', '3', '0', '.', '1', '9','5', '.', '3','.', '9', '1', '\0'};
     int server_port = 1024;
     char message [24] = {'P', 'l', 'e', 'a', 's', 'e', '\0'};
     char password [24] = "";
@@ -175,6 +175,30 @@ double centre_on_line(std::vector<int>& line,
     return (calculate_error(line) / num_black_pixels) * KP;
 }
 
+
+/**
+ * Returns the adjustment required to centre the robot to a coloured object (such as a cylinder)
+ * @param line Middle line of image to scan
+ * @param num_colored_pixels Number of coloured pixels that were scanned
+ * @param color Colour to scan for
+ * @return
+ */
+double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
+    num_colored_pixels = 0;
+    for (int i = 0; i < CAMERA_WIDTH; i++ ) {
+        if ((color == RED && isRed(CAMERA_HEIGHT/2, i)) ||
+            (color == GREEN && isGreen(CAMERA_HEIGHT/2, i)) ||
+            (color == BLUE && isBlue(CAMERA_HEIGHT/2, i))) {
+            line.push_back(1);
+            num_colored_pixels++;
+        } else {
+            line.push_back(0);
+        }
+    }
+    if (num_colored_pixels == 0) return 0;
+    return (calculate_error(line) / num_colored_pixels) * KP;
+}
+
 /**
  * Evaluates the situation of there is no line detected
  * Either moved backwards or turns around if the robot has turned around too much
@@ -246,33 +270,12 @@ void line_follower() {
             forward();
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         } else {
+            // Moves the robot forwards again before moving camera up in quad4
+            // so robot doesn't get confused with red square
             forward();
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     }
-}
-
-/**
- * Returns the adjustment required to centre the robot to a coloured object (such as a cylinder)
- * @param line Middle line of image to scan
- * @param num_colored_pixels Number of coloured pixels that were scanned
- * @param color Colour to scan for
- * @return
- */
-double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
-    num_colored_pixels = 0;
-    for (int i = 0; i < CAMERA_WIDTH; i++ ) {
-        if ((color == RED && isRed(CAMERA_HEIGHT/2, i)) ||
-            (color == GREEN && isGreen(CAMERA_HEIGHT/2, i)) ||
-            (color == BLUE && isBlue(CAMERA_HEIGHT/2, i))) {
-            line.push_back(1);
-            num_colored_pixels++;
-        } else {
-            line.push_back(0);
-        }
-    }
-    if (num_colored_pixels == 0) return 0;
-    return (calculate_error(line) / num_colored_pixels) * KP;
 }
 
 /**
@@ -286,41 +289,40 @@ void color_move() {
     double adjustment;
     int num_colored_pixels;
     int color;
-    // Turn on pivot while scanning for red. Stop when red is in the middle of the cameras view
     for (int i = 0; i < 4; i++) {
+        // Set color variable according to which iteration of the loop it is
         if (i == 0 || i == 3) color = RED;
         else if (i == 1) color = GREEN;
         else if (i == 2) color = BLUE;
         while (true) {
             take_picture();
             line.clear();
+            // Finds necessary adjustment for pointing self towards cylinder
             num_colored_pixels = 0;
             adjustment = centre_on_color(line, num_colored_pixels, color);
+            // Breaks and moves to next color if too close to cylinder
             if (num_colored_pixels > 250) {
+                // If in the 4th phase, move forward until ball is off the table
                 if (i != 3) break;
                 do {
                     forward();
                 } while (num_colored_pixels > 5);
             } else if (num_colored_pixels != 0) {
+                // Drives towards cylinders using quad2/3 logic
                 set_motors(LEFT_MOTOR, LEFT_BASE + adjustment);
                 set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
                 hardware_exchange();
             } else {
+                // Pivots if no colored cylinders are seen
                 turn_right_pivot();
             }
         }
+        // After approaching the cylinder, moves backwards and sleeps for a moment.
         backward();
         std::this_thread::sleep_for(std::chrono::milliseconds(750));
-        std::cout<<"Moving to new color"<<std::endl;
+        std::cout << "Moving to new color" << std::endl;
     }
-    // Move towards red using similar algorithm to line follower (keeping red centered)
-    // Stop once the number of red pixels is greater than a certain amount (probably 250-300)
-
-    // Repeat above (loop) for green and blue
 }
-    // Turn on pivot while scanning for red as in cylinder move.
-    // Move towards red in same way.
-    // Once red is higher than threshold, keep moving forwards until red is below threshold (50?)
 
 int main() {
     int err;
