@@ -7,7 +7,7 @@
 
 const int ZERO_SPEED = 48;
 const int FLAT_ANGLE = 30;
-const int VERTICAL_ANGLE = 65;
+const int VERTICAL_ANGLE = 60;
 const int LEFT_MOTOR = 5;
 const int RIGHT_MOTOR = 1;
 const int CAMERA_SERVO = 3;
@@ -120,7 +120,7 @@ void open_gate() {
  * @param line
  * @return
  */
-double calculate_error(std::vector<double>& line) {
+double calculate_error(std::vector<int>& line) {
     double error = 0;
     int j = -1 * (int)(line.size()/2);
     for (int i = 0; i < 320; i++) {
@@ -138,7 +138,7 @@ double calculate_error(std::vector<double>& line) {
  * @param num_red_pixels
  * @return
  */
-int read_middle_line(std::vector<double>& line, int& num_red_pixels) {
+int read_middle_line(std::vector<int>& line, int& num_red_pixels) {
     int num_black_pixels = 0;
     num_red_pixels = 0;
     for (int i = 0; i < CAMERA_WIDTH; i++) {
@@ -162,7 +162,7 @@ int read_middle_line(std::vector<double>& line, int& num_red_pixels) {
  * @param num_red_pixels
  * @return
  */
-double centre_on_line(std::vector<double>& line,
+double centre_on_line(std::vector<int>& line,
                       int& num_black_pixels, int& num_red_pixels) {
     take_picture();
     line.clear();
@@ -181,26 +181,31 @@ double centre_on_line(std::vector<double>& line,
  * @param back_count
  * @param consecutive_back
  */
-void no_line(int& consecutive_back) {
-    if (consecutive_back < 10) {
+void no_line(int& back_count, int& consecutive_back) {
+    if (back_count < 20) {
         backward();
+        back_count++;
         consecutive_back++;
-    } else {
+    } else if (consecutive_back > 10) {
         turn_left_pivot();
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        back_count = 0;
         consecutive_back = 0;
+    } else {
+        turn_left_pivot();
     }
 }
 
 /**
  * Robot follows the line
- * Cabable of naviagting tight turns, right angle turns, and junctions.
+ * Capable of navigating tight turns, right angle turns, and junctions.
  * Always turn left if at junction
  */
 void line_follower() {
-    std::vector<double> line;
+    std::vector<int> line;
     int num_black_pixels;
     int num_red_pixels;
+    int back_count;
     int consecutive_back;
 
     double adjustment;
@@ -208,6 +213,7 @@ void line_follower() {
         // initialise tracking variables
         num_black_pixels = 0;
         num_red_pixels = 0;
+        back_count = 0;
         consecutive_back = 0;
         while (true) {
             take_picture();
@@ -225,7 +231,7 @@ void line_follower() {
                     set_motors(RIGHT_MOTOR, RIGHT_BASE + adjustment);
                     hardware_exchange();
                 } else {
-                    no_line(consecutive_back);
+                    no_line(back_count, consecutive_back);
                 }
             } else {
                 turn_left();
@@ -239,6 +245,9 @@ void line_follower() {
             // Moves the robot forward for 1 second to avoid getting stuck on red square
             forward();
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        } else {
+            forward();
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     }
 }
@@ -250,7 +259,7 @@ void line_follower() {
  * @param color Colour to scan for
  * @return
  */
-double centre_on_color(std::vector<double>& line, int& num_colored_pixels, int color) {
+double centre_on_color(std::vector<int>& line, int& num_colored_pixels, int color) {
     num_colored_pixels = 0;
     for (int i = 0; i < CAMERA_WIDTH; i++ ) {
         if ((color == RED && isRed(CAMERA_HEIGHT/2, i)) ||
@@ -271,7 +280,9 @@ double centre_on_color(std::vector<double>& line, int& num_colored_pixels, int c
  */
 void color_move() {
     set_motors(CAMERA_SERVO, VERTICAL_ANGLE);
-    std::vector<double> line;
+    hardware_exchange();
+    stop();
+    std::vector<int> line;
     double adjustment;
     int num_colored_pixels;
     int color;
@@ -285,7 +296,7 @@ void color_move() {
             line.clear();
             num_colored_pixels = 0;
             adjustment = centre_on_color(line, num_colored_pixels, color);
-            if (num_colored_pixels > 150) {
+            if (num_colored_pixels > 250) {
                 if (i != 3) break;
                 do {
                     forward();
@@ -298,6 +309,9 @@ void color_move() {
                 turn_right_pivot();
             }
         }
+        backward();
+        std::this_thread::sleep_for(std::chrono::milliseconds(750));
+        std::cout<<"Moving to new color"<<std::endl;
     }
     // Move towards red using similar algorithm to line follower (keeping red centered)
     // Stop once the number of red pixels is greater than a certain amount (probably 250-300)
@@ -318,7 +332,7 @@ int main() {
 
     // Follow line through from quad2 to end of quad3
     line_follower();
-
+    std::cout<<"Moving to quad4"<<std::endl;
     // quad4
     color_move();
 
